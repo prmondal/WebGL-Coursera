@@ -1,4 +1,3 @@
-
 var canvas;
 var gl;
 
@@ -143,6 +142,7 @@ function initCanvas() {
 
             //insert vertices
             gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+            
             point = vec2(2 * event.clientX / canvas.width - 1, 2 * (canvas.height - event.clientY) / canvas.height - 1);
 
             gl.bufferSubData(gl.ARRAY_BUFFER, 8 * index, flatten(point));
@@ -175,7 +175,6 @@ function initGL() {
     if ( !gl ) { alert( "WebGL isn't available" ); }
     
     gl.viewport( 0, 0, canvas.width, canvas.height );
-
 
     gl.clearColor( canvasBackgroundColor[0], canvasBackgroundColor[1], canvasBackgroundColor[2], canvasBackgroundColor[3]);
     gl.clear( gl.COLOR_BUFFER_BIT );

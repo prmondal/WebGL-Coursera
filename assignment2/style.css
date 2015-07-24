@@ -1,30 +1,109 @@
-#controller{
-	margin-top: 10px;
+#controller {
+	margin-top: 150px;
+	margin-left: 200px;
+	float: left;
+
+	height:250px;
+    width:250px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #D28197;
+    border-radius: 25px;
+    background-color: #E1E7F7;
+    padding: 20px;
+    font-family:'calibri'
 }
 
 #controller div {
-	display: block !important;
-	float: left;
-  	clear: left;
-  	margin-bottom: 10px;
-}
-
-#brush-color-div {
-	float: none !important;
-	clear: none !important;
+	margin-bottom: 20px;
 }
 
 #controller span {
-	color: rgb(0, 101, 255);
+	color: rgb(37, 72, 179);
 	float: left;
 	clear: left;
+	font-weight: bold;
+	margin-bottom: 4px;
 }
 
-#slider-line-width-child-div {
-	float: left;
-	clear: left;
+#line-width-child-div {
+	margin-left: 10px;
+    float: left;
 }
 
 canvas {
 	cursor: crosshair;
+}
+
+#canvas-div {
+	float: left;
+    clear: left;
+}
+
+#clear-div {
+	float: left;
+    clear: left;
+}
+
+#clear-div button {
+	margin-left: 85px;
+    margin-top: 42px;
+
+    background-color:#4F6AB5;
+	-moz-border-radius:15px;
+	-webkit-border-radius:15px;
+	border-radius:15px;
+	border:3px solid #9191CA;
+	display:inline-block;
+	cursor:pointer;
+	color:#e2edf0;
+	font-family:Arial;
+	font-size:16px;
+	padding:13px 20px;
+	text-decoration:none;
+}
+
+#clear-div button:hover {
+	background-color:#7184BB;
+}
+
+#brush-color-div {
+	float: left;
+    margin-left: 10px;
+}
+
+#background-color-div {
+	float: left;
+    margin-left: 10px;
+}
+
+#colorstrip {
+    height: 0px;
+    border-bottom:solid 2px #cccccc;
+    width: 500px;
+}
+
+#title-div {
+	position: absolute;
+	margin-left: 650px;
+}
+
+#title-div h2 {
+	font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
+	font-size: 25px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 500;
+	line-height: 26.3999996185303px;
+	color: #cc0000;
+}
+
+#title-div h3 {
+	font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
+	font-size: 16px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 500;
+	line-height: 15.3999996185303px;
+	color: #003300;
 }

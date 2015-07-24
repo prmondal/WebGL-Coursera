@@ -42,6 +42,12 @@
 <body>
 
 <div id="container">
+	<div id="title-div">
+		<h2 id="title1">Interactive Computer Graphics with WebGL</h2>
+		<div id="colorstrip"></div>
+		<h3 id="title2">Assignment 2: Drawing Canvas</h3>
+	</div>
+
 	<div id="canvas-div">
 		<canvas id="gl-canvas" width="600" height="600">
 			Oops ... your browser doesn't support the HTML5 canvas element
@@ -49,10 +55,10 @@
 	</div>
 
 	<div id="controller">
-		<span><b>Brush</b></span>
+		<span>Brush - </span>
 		<div id="brush-color-div"><input style="width:100px;" id="brush-color"/></div>
 
-		<span><b>Background</b></span>
+		<span>Background - </span>
 		<div id="background-color-div"><input style="width:100px;" id="background-color"/></div>
 
 		<!--<div id="slider-line-width-div">
@@ -61,7 +67,7 @@
 		</div>-->
 
 		<div id="line-width-div">
-			<span><b>Line Width</b></span> 
+			<div><span>Line Width - </span></div>
 			<div id="line-width-child-div">
 				<select id="select-line-width">
 					<option value='1.0'>1.0</option>
