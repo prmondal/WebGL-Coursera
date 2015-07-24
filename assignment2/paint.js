@@ -11,6 +11,7 @@ var curveStarted = false;
 var point, index = 0;
 
 var mouseDown = false;
+var MOUSE_OFFSET = 5;
 
 //brush
 var defaultBrushColor = '#00ff00';
@@ -143,7 +144,7 @@ function initCanvas() {
             //insert vertices
             gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
             
-            point = vec2(2 * event.clientX / canvas.width - 1, 2 * (canvas.height - event.clientY) / canvas.height - 1);
+            point = vec2(2.0 * (event.clientX - MOUSE_OFFSET) / canvas.width - 1.0, 2.0 * (canvas.height - event.clientY + MOUSE_OFFSET) / canvas.height - 1.0);
 
             gl.bufferSubData(gl.ARRAY_BUFFER, 8 * index, flatten(point));
 
