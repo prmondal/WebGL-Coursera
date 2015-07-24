@@ -1,0 +1,14 @@
+#twist-text{
+  	border-radius: 5px;
+}
+
+#controller{
+	margin-top: 10px;
+}
+
+#controller div {
+	display: block !important;
+	float: left;
+  	clear: left;
+  	margin-bottom: 10px;
+}
