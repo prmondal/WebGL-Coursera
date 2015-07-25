@@ -1,9 +1,12 @@
 var canvas;
 var gl;
 
+var lineWidth = 1.0;
+
 //curve properties
 var maxNumVertices = 100000;
 var curveIdx = 0;
+var lineWidthForCurves;
 var numberOfVerticesCurve = [0];
 var curveStart = [0];
 var curveStarted = false;
@@ -17,14 +20,14 @@ var MOUSE_OFFSET = 5;
 var defaultBrushColor = '#00ff00';
 var brushColor;
 
-var lineWidth = 1;
-
 //canvas
 var defaultCanvasBackgroundColor = '#000000';
 var canvasBackgroundColor;
 
 //gl
 var vBuffer, cBuffer, program;
+
+var CANVAS_OFFSET_Y = 125;
 
 /*var canvasXPos = window.innerWidth,
     canvasYPos = 0,
@@ -71,6 +74,9 @@ function clearCanvas() {
     curveIdx = 0;
     numberOfVerticesCurve = [0];
     curveStart = [0];
+
+    //read current line width value
+    lineWidthForCurves = [$("#select-line-width").val()];
 }
 
 function initDOM() {
@@ -105,7 +111,7 @@ function initDOM() {
     });*/
 
     $('#select-line-width').change(function(){
-        lineWidth = $(this).val();
+        lineWidthForCurves[curveIdx] = $(this).val();
     });
 
     $("#clear-canvas").click(function(e) {
@@ -116,6 +122,15 @@ function initDOM() {
 }
 
 function initCanvas() {
+    //calculate canvas offset from top
+    var canvElem = document.getElementById('gl-canvas');
+    var style = canvElem.currentStyle || window.getComputedStyle(canvElem);
+
+    CANVAS_OFFSET_Y = style.marginTop;
+
+    var i = CANVAS_OFFSET_Y.indexOf("p");
+    CANVAS_OFFSET_Y = parseInt(CANVAS_OFFSET_Y.substr(0, i));
+
     clearCanvas();
 
     canvas.addEventListener("mousedown", function(e) {
@@ -144,7 +159,7 @@ function initCanvas() {
             //insert vertices
             gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
             
-            point = vec2(2.0 * (event.clientX - MOUSE_OFFSET) / canvas.width - 1.0, 2.0 * (canvas.height - event.clientY + MOUSE_OFFSET) / canvas.height - 1.0);
+            point = vec2(2.0 * (event.clientX - MOUSE_OFFSET) / canvas.width - 1.0, 2.0 * (canvas.height + CANVAS_OFFSET_Y - event.clientY + MOUSE_OFFSET) / canvas.height - 1.0);
 
             gl.bufferSubData(gl.ARRAY_BUFFER, 8 * index, flatten(point));
 
@@ -205,10 +220,10 @@ window.onload = function init() {
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    //set line width
-    gl.lineWidth(lineWidth);
-
     for(var i = 0; i <= curveIdx; i++) {
+        //set line width
+        gl.lineWidth(lineWidthForCurves[i]);
+
         gl.drawArrays(gl.LINE_STRIP, curveStart[i], numberOfVerticesCurve[i]);
     }
 

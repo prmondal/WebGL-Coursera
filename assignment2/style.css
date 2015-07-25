@@ -1,6 +1,6 @@
 #controller {
 	margin-top: 150px;
-	margin-left: 200px;
+	margin-left: 125px;
 	float: left;
 
 	height:250px;
@@ -11,7 +11,7 @@
     border-radius: 25px;
     background-color: #E1E7F7;
     padding: 20px;
-    font-family:'calibri'
+   	font-family:'calibri'
 }
 
 #controller div {
@@ -33,6 +33,7 @@
 
 canvas {
 	cursor: crosshair;
+	margin-top: 125px;
 }
 
 #canvas-div {
@@ -85,7 +86,7 @@ canvas {
 
 #title-div {
 	position: absolute;
-	margin-left: 650px;
+	/*margin-left: 650px;*/
 }
 
 #title-div h2 {
