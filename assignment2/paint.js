@@ -211,9 +211,8 @@ window.onload = function init() {
     canvas.style.top = (window.innerHeight / 2 - canvasHeight / 2) + 'px';
     canvas.style.left = (window.innerWidth / 2 - canvasWidth / 2) + 'px';*/
 
-    initGL();
-
     initCanvas();
+    initGL();
 }
 
 
