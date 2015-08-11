@@ -1,3 +1,66 @@
+/*var vertices1 = [
+   vec2(-0.5, 0.5),
+   vec2(-0.5, -0.5),
+   vec2(0.5, -0.5),
+   vec2(0.5, 0.5)
+];
+
+var indices1 = [
+	0, 1, 2,
+	0, 2, 3
+];
+
+var colors1 = [
+	vec4(1.0,0.0,0.0,1.0),
+	vec4(0.0,1.0,0.0,1.0),
+	vec4(0.0,0.0,1.0,1.0),
+	vec4(1.0,0.0,1.0,1.0)
+];
+
+var vertices2 = [
+    vec3( -9.5, -0.5,  0.5 ),
+    vec3( -0.5,  0.5,  0.5 ),
+    vec3(  0.5,  0.5,  0.5 ),
+    vec3(  0.5, -0.5,  0.5 ),
+    vec3( -0.5, -0.5, -0.5 ),
+    vec3( -0.5,  0.5, -0.5 ),
+    vec3(  0.5,  0.5, -0.5 ),
+    vec3(  0.5, -0.5, -0.5 )
+];
+
+var colors2 = [
+    vec4( 0.0, 0.0, 0.0, 1.0 ),  // black
+    vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
+    vec4( 1.0, 1.0, 0.0, 1.0 ),  // yellow
+    vec4( 0.0, 1.0, 0.0, 1.0 ),  // green
+    vec4( 0.0, 0.0, 1.0, 1.0 ),  // blue
+    vec4( 1.0, 0.0, 1.0, 1.0 ),  // magenta
+    vec4( 1.0, 1.0, 1.0, 1.0 ),  // white
+    vec4( 0.0, 1.0, 1.0, 1.0 )   // cyan
+];
+
+// indices of the 12 triangles that compise the cube
+
+var indices2 = [
+    1, 0, 3,
+    3, 2, 1,
+    2, 3, 7,
+    7, 6, 2,
+    3, 0, 4,
+    4, 7, 3,
+    6, 5, 1,
+    1, 2, 6,
+    4, 5, 6,
+    6, 7, 4,
+    5, 4, 0,
+    0, 1, 5
+];*/
+
+var sphereColor = vec4(1.0, 1.0, 1.0, 1.0);
+var sphereRadius = 1;
+var LONG_SUB_DIVISIONS = 16;
+var LAT_SUB_DIVISIONS = 16;
+
 var OBJECT_TYPE = {
 	SPHERE: 'SPHERE',
 	CONE: 'CONE',
@@ -10,49 +73,45 @@ var canvas,
 	modelView,
 	projection;
 
-var near = 0.3,
-	far = 10.0,
+var nearP = 0.3,
+	farP = 1000.0,
 	aspect;
 	fovy = 45.0;
 
+var left = -2.0;
+var right = 2.0;
+var ytop = 2.0;
+var bottom = -2.0;
+var near = -10;
+var far = 10;
+
+/*const at = vec3(0.0, -1.0, 0.0);
+const up = vec3(0.0, 1.0, 0.0);
+var cameraDistance = 1.0;
+
+var eye = vec3(0.0, 0.5, cameraDistance);*/
+
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
-var cameraDistance = 4.0;
+var cameraDistance = 5.0;
 
 var eye = vec3(0.0, 0.0, cameraDistance);
 
-var vertices1 = [
-    vec2(-1.0, -1.0),
-    vec2(0,  1.0),
-    vec2(1.0, -1.0)
-];
-
-var colors1 = [
-	vec4(1.0,0.0,0.0,1.0),
-	vec4(0.0,1.0,0.0,1.0),
-	vec4(0.0,0.0,1.0,1.0)
-];
-
-var colors2 = [
-	vec4(0.0,0.0,1.0,1.0),
-	vec4(0.0,0.0,1.0,1.0),
-	vec4(0.0,0.0,1.0,1.0)
-];
-
-var vertices2 = [
-    vec2(-0.5, -0.5),
-    vec2(0.0,  0.5),
-    vec2(0.5, -0.5)
-];
+var numVertCoordinate = 3;
 
 //constructor to create an object
 //type property defines the object type
-function shape(type, vertices, colors, translate, rotate, scale) {
+function shape(type, vertices, indices, colors, translate, rotate, scale) {
 	this.buffer = {
 		verId: gl.createBuffer(),
 		verData: vertices,
+
+		idxId: gl.createBuffer(),
+		idxData: indices, 
+
 		colId: gl.createBuffer(),
 		colData: colors || [
+			vec4(1.0,0.0,0.0,1.0),
 			vec4(1.0,0.0,0.0,1.0),
 			vec4(1.0,0.0,0.0,1.0),
 			vec4(1.0,0.0,0.0,1.0)
@@ -106,7 +165,11 @@ function initShaderForShapes() {
 	gl.uniformMatrix4fv(obj.shaderVariables.projection, false, flatten(projection));
 
 	//bind buffer
-	//vertices
+	//indices
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, obj.buffer.idxId);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(obj.buffer.idxData), gl.STATIC_DRAW);
+
+    //vertices
 	gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer.verId);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(obj.buffer.verData), gl.STATIC_DRAW);
 
@@ -116,7 +179,7 @@ function initShaderForShapes() {
 
     //enable vertex coordinate data
     gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer.verId);
-    gl.vertexAttribPointer(obj.shaderVariables.vPosition, 2, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(obj.shaderVariables.vPosition, numVertCoordinate, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(obj.shaderVariables.vPosition);
 
     //enable vertex color data
@@ -130,21 +193,88 @@ function initShaderForShapes() {
     gl.uniform3fv(obj.shaderVariables.scale, flatten(obj.scale));
 }
 
-function sphere(vertices, colors, translate, rotate, scale, radius) {
-	shape.apply(this, [OBJECT_TYPE.SPHERE, vertices, colors, translate, rotate, scale]);
-	this.radius = radius;
+function createSphereGeometry(radius) {
+	var sphereGeometry = {};
 
+	var vertices = [],
+		indices = [],
+		colors = [];
+	
+	var thetaStart = 0, thetaEnd = Math.PI,
+		phiStart = 0, phiEnd = 2 * Math.PI;
+
+	var thetaRange = thetaEnd - thetaStart,
+		phiRange = phiEnd - phiStart;
+
+	for(var phi = 0; phi <= LONG_SUB_DIVISIONS; phi++) {
+		for(var theta = 0; theta <= LAT_SUB_DIVISIONS; theta++) {
+			var t = thetaStart + theta * (thetaRange / LAT_SUB_DIVISIONS),
+				p = phiStart + phi * (phiRange / LONG_SUB_DIVISIONS);
+
+			var cosTheta = Math.cos(t),
+				sinTheta = Math.sin(t),
+				cosPhi = Math.cos(p),
+				sinPhi = Math.sin(p);
+
+			var x = radius * cosTheta * sinPhi,
+				y = radius * cosPhi,
+				z = radius * sinTheta * sinPhi;
+
+			vertices.push(vec3(x, y, z));
+			colors.push(vec4(1.0, 0.0, 0.0, 1.0));
+		}
+	}
+
+	//calculate indices
+	for(var theta = 0; theta < LAT_SUB_DIVISIONS; theta++) {
+		for(var phi = 0; phi < LONG_SUB_DIVISIONS; phi++) {
+			var totalPoints = (LAT_SUB_DIVISIONS + 1);
+
+			//first triangle
+			indices.push(
+				phi * totalPoints + theta,
+				phi * totalPoints + theta + 1,
+				(phi + 1) * totalPoints + theta
+			); 
+
+			//second triangle
+			indices.push(
+				(phi + 1) * totalPoints + theta + 1,
+				phi * totalPoints + theta + 1,
+				(phi + 1) * totalPoints + theta
+			);
+		}
+	}
+
+	sphereGeometry.vertices = vertices;
+	sphereGeometry.indices = indices;
+	sphereGeometry.colors = colors;
+
+	return sphereGeometry;
+}
+
+function sphere(translate, rotate, scale, radius) {
+	this.radius = radius || 1;
+
+	/*var vertices = createSphereVertices(this.radius);
+	var indices = createIndices();*/
+	var sphereGeometry = createSphereGeometry(this.radius);
+
+	shape.apply(this, [OBJECT_TYPE.SPHERE, sphereGeometry.vertices, sphereGeometry.indices, sphereGeometry.colors, translate, rotate, scale]);
+	//shape.apply(this, [OBJECT_TYPE.SPHERE, vertices, indices, colors, translate, rotate, scale]);
+	//shape.apply(this, [OBJECT_TYPE.SPHERE, vertices1, indices1, color, translate, rotate, scale]);
+	
 	//set shader variables
 	initShaderForShapes.call(this);
 }
 
 //utility method to create shape and push it to the object pool
-function createShape(type, vertices, colors, translate, rotate, scale) {
+function createShape(type, translate, rotate, scale) {
 	var obj;
 
 	switch(type) {
 		case OBJECT_TYPE.SPHERE:
-			obj = new sphere(vertices, colors, translate, rotate, scale, 10);
+			obj = new sphere(translate, rotate, scale, sphereRadius);
 
 			break;
 	}
@@ -178,12 +308,12 @@ function initGL() {
 
 function initViewProjection() {
 	modelView = lookAt(eye, at, up);
-	projection = perspective(fovy, aspect, near, far);
+	projection = perspective(fovy, aspect, nearP, farP);
+	//projection = ortho(left, right, bottom, ytop, near, far);
 }
 
 function createModel() {
-	createShape('SPHERE', vertices1, colors1, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
-	createShape('SPHERE', vertices2, colors2, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 180.0), vec3(1.0, 1.0, 1.0));
+	createShape('SPHERE', vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
 }
 
 window.onload = function() {
@@ -199,13 +329,13 @@ window.onload = function() {
 function render() {
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
-
+	
 	for(var i = 0, l = objectPool.length; i < l; i++) {
 		gl.useProgram(objectPool[i].program);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, objectPool[i].buffer.verId);
 		gl.bufferData(gl.ARRAY_BUFFER, flatten(objectPool[i].buffer.verData), gl.STATIC_DRAW );
-		gl.vertexAttribPointer(objectPool[i].shaderVariables.vPosition, 2, gl.FLOAT, false, 0, 0);
+		gl.vertexAttribPointer(objectPool[i].shaderVariables.vPosition, numVertCoordinate, gl.FLOAT, false, 0, 0);
     	gl.enableVertexAttribArray(objectPool[i].shaderVariables.vPosition);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, objectPool[i].buffer.colId);
@@ -213,8 +343,14 @@ function render() {
 		gl.vertexAttribPointer(objectPool[i].shaderVariables.vColor, 4, gl.FLOAT, false, 0, 0);
     	gl.enableVertexAttribArray(objectPool[i].shaderVariables.vColor);
 
-    	gl.drawArrays(gl.TRIANGLES, 0, objectPool[i].buffer.verData.length);
-		//gl.drawArrays( gl.LINE_LOOP, 0, 3);
+    	gl.drawElements(gl.TRIANGLES, objectPool[i].buffer.idxData.length, gl.UNSIGNED_BYTE, 0);
+    	//gl.drawElements(gl.LINE_LOOP, objectPool[i].buffer.idxData.length, gl.UNSIGNED_BYTE, 0);
+
+    	//gl.drawArrays(gl.TRIANGLES, 0, objectPool[i].buffer.verData.length);
+		//for(var j = 0; j < objectPool[i].buffer.verData.length; j += 3) {
+			//gl.drawArrays(gl.TRIANGLES, 0, 3);
+			//gl.drawArrays( gl.LINE_LOOP, 0, 3);
+		//}
 	}
 
 	window.requestAnimFrame(render);
