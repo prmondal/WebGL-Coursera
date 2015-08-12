@@ -50,7 +50,7 @@ var OBJECT_TYPE = {
 };
 
 var SPHERE_PROPERTY = {
-	LONG_SUB_DIVISIONS: 16,
+	LONG_SUB_DIVISIONS: 32, //should be double of lat divs
 	LAT_SUB_DIVISIONS: 16,
 
 	thetaStart: 0,
@@ -109,7 +109,7 @@ var phi    = 0.0;
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 
-var eye = vec3(0.0, 0.0, radius);
+var eye = vec3(1.0, 5.0, radius);
 
 //constructor to create an object
 //type property defines the object type
@@ -146,6 +146,10 @@ function shape(type, shapeProp, translate, rotate, scale) {
 		rotate: gl.getUniformLocation(this.program, "rotation"),
 		scale: gl.getUniformLocation(this.program, "scale")
 	};
+
+	this.draw = function() {
+		drawShape(this);
+	}
 
 	this.setTranslate = function(translate) {
 		this.translate = translate;
@@ -430,15 +434,15 @@ function createShape(type, translate, rotate, scale) {
 
 	switch(type) {
 		case OBJECT_TYPE.SPHERE:
-			obj = new sphere(translate, rotate, scale, 1);
+			obj = new sphere(translate, rotate, scale, 0.5);
 			break;
 
 		case OBJECT_TYPE.CYLINDER:
-			obj = new cylinder(translate, rotate, scale, 1, 1, 2, true, true);
+			obj = new cylinder(translate, rotate, scale, 0.5, 0.5, 1, true, true);
 			break;
 
 		case OBJECT_TYPE.CONE:
-			obj = new cylinder(translate, rotate, scale, 0.00009, 1, 2, false, true);
+			obj = new cylinder(translate, rotate, scale, 0.00001, 0.5, 1, false, true);
 			break;
 	}
 
@@ -473,14 +477,19 @@ function initGL() {
 
 function initViewProjection() {
 	modelView = lookAt(eye, at, up);
-	projection = perspective(fovy, aspect, nearP, farP);
+	//perspective function problem
+	//near and far swapped
+	projection = perspective(fovy, aspect, farP, nearP);
 	//projection = ortho(left, right, bottom, ytop, nearO, farO);
 }
 
 function createModel() {
 	createShape(OBJECT_TYPE.SPHERE, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
-	createShape(OBJECT_TYPE.CYLINDER, vec3(2.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.5, 1.0, 1.0));
-	createShape(OBJECT_TYPE.CONE, vec3(-2.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
+	createShape(OBJECT_TYPE.CYLINDER, vec3(2.0, 0.0, 0.0), vec3(0.0, 0.0, 45.0), vec3(1.0, 1.0, 1.0));
+	createShape(OBJECT_TYPE.CONE, vec3(-2.0, 0.0, 0.0), vec3(-30.0, 0.0, -45.0), vec3(1.0, 1.0, 1.0));
+
+	//createShape(OBJECT_TYPE.CYLINDER, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
+
 	/*for(var i = -4; i < 5; i++) {
 		createShape(OBJECT_TYPE.SPHERE, vec3(i, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.5, 0.5, 0.5));
 		createShape(OBJECT_TYPE.CONE, vec3(i, 0.7, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.3, 0.3, 0.3));
@@ -502,13 +511,13 @@ function render() {
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.clearColor(WORLD.worldColor[0], WORLD.worldColor[1], WORLD.worldColor[2], WORLD.worldColor[3]);
 	
-	eye = vec3(radius*Math.sin(theta)*Math.cos(phi), 
-        radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
+	/*eye = vec3(radius*Math.sin(theta)*Math.cos(phi), 
+        radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));*/
 
     initViewProjection();
 
 	for(var i = 0, l = objectPool.length; i < l; i++) {
-		drawShape(objectPool[i]);
+		objectPool[i].draw();
 	}
 
 	window.requestAnimFrame(render);
