@@ -1,24 +1,5 @@
-/*var vertices1 = [
-   vec2(-0.5, 0.5),
-   vec2(-0.5, -0.5),
-   vec2(0.5, -0.5),
-   vec2(0.5, 0.5)
-];
-
-var indices1 = [
-	0, 1, 2,
-	0, 2, 3
-];
-
-var colors1 = [
-	vec4(1.0,0.0,0.0,1.0),
-	vec4(0.0,1.0,0.0,1.0),
-	vec4(0.0,0.0,1.0,1.0),
-	vec4(1.0,0.0,1.0,1.0)
-];
-
-var vertices2 = [
-    vec3( -9.5, -0.5,  0.5 ),
+var vertices1 = [
+    vec3( -0.5, -0.5,  0.5 ),
     vec3( -0.5,  0.5,  0.5 ),
     vec3(  0.5,  0.5,  0.5 ),
     vec3(  0.5, -0.5,  0.5 ),
@@ -28,7 +9,7 @@ var vertices2 = [
     vec3(  0.5, -0.5, -0.5 )
 ];
 
-var colors2 = [
+var colors1 = [
     vec4( 0.0, 0.0, 0.0, 1.0 ),  // black
     vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
     vec4( 1.0, 1.0, 0.0, 1.0 ),  // yellow
@@ -41,7 +22,7 @@ var colors2 = [
 
 // indices of the 12 triangles that compise the cube
 
-var indices2 = [
+var indices1 = [
     1, 0, 3,
     3, 2, 1,
     2, 3, 7,
@@ -54,7 +35,15 @@ var indices2 = [
     6, 7, 4,
     5, 4, 0,
     0, 1, 5
-];*/
+];
+
+indices1 = indices1.reverse();
+
+var WORLD = {
+	vertDim: 3,
+	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
+	worldColor: vec4(0.0, 0.0, 0.0, 1.0)
+};
 
 var OBJECT_TYPE = {
 	SPHERE: 'SPHERE',
@@ -69,7 +58,22 @@ var SPHERE_PROPERTY = {
 	thetaStart: 0,
 	thetaEnd: Math.PI,
 	phiStart: 0, 
-	phiEnd: 2 * Math.PI
+	phiEnd: 2 * Math.PI,
+
+	color: vec4(1.0, 0.0, 0.0, 1.0),
+	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
+};
+
+var CYLINDER_PROPERTY = {
+	radialSegment: 16,
+	heightSegment: 1,
+	thetaStart: 0,
+	thetaEnd: 2 * Math.PI,
+	top: true,
+	bottom: true,
+
+	color: vec4(1.0, 0.0, 0.0, 1.0),
+	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
 var canvas, 
@@ -85,12 +89,12 @@ var nearP = 0.3,
 	fovy = 45.0;
 
 //ortho graphic camera properties
-var left = -100.0;
-	right = 100.0,
-	ytop = 100.0,
-	bottom = -100.0,
-	nearO = -100,
-	farO = 100;
+var left = -5.0;
+	right = 5.0,
+	ytop = 5.0,
+	bottom = -5.0,
+	nearO = -5,
+	farO = 5;
 
 /*const at = vec3(0.0, -1.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
@@ -103,8 +107,6 @@ const up = vec3(0.0, 1.0, 0.0);
 
 var eye = vec3(0.0, 0.0, 5.0);
 
-var vertDim = 3;
-
 //constructor to create an object
 //type property defines the object type
 function shape(type, shapeProp, translate, rotate, scale) {
@@ -116,12 +118,9 @@ function shape(type, shapeProp, translate, rotate, scale) {
 		idxData: shapeProp.indices, 
 
 		colId: gl.createBuffer(),
-		colData: shapeProp.colors || [
-			vec4(1.0,0.0,0.0,1.0),
-			vec4(1.0,0.0,0.0,1.0),
-			vec4(1.0,0.0,0.0,1.0),
-			vec4(1.0,0.0,0.0,1.0)
-		]
+		colData: shapeProp.colors,
+
+		wireframeColorData: shapeProp.wireframeColors
 	};
 
 	this.type = type;
@@ -185,7 +184,7 @@ function initShaderForShapes() {
 
     //enable vertex coordinate data
     gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer.verId);
-    gl.vertexAttribPointer(obj.shaderVariables.vPosition, vertDim, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(obj.shaderVariables.vPosition, WORLD.vertDim, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(obj.shaderVariables.vPosition);
 
     //enable vertex color data
@@ -199,25 +198,40 @@ function initShaderForShapes() {
     gl.uniform3fv(obj.shaderVariables.scale, flatten(obj.scale));
 }
 
+//store vertices for future
 function createSphereGeometry(radius, sphereProp) {
-	var sphereGeometry = {};
+	var wireframeColors = [];
+
+	for(var i = 0; i < vertices1.length; i++) {
+		wireframeColors.push(sphereProp.wireframeColor);
+	}
+
+	return {
+		vertices : vertices1,
+		indices: indices1,
+		colors: colors1,
+		wireframeColors: wireframeColors
+	}
 
 	var vertices = [],
 		indices = [],
-		colors = [];
+		colors = [],
+		wireframeColors = [];
 	
 	var thetaStart = sphereProp.thetaStart || 0, 
 		thetaEnd = sphereProp.thetaEnd || Math.PI,
 		phiStart = sphereProp.phiStart || 0, 
-		phiEnd = sphereProp.phiEnd || 2 * Math.PI;
+		phiEnd = sphereProp.phiEnd || 2 * Math.PI,
+		longSubDiv = sphereProp.LONG_SUB_DIVISIONS || 16,
+		latSubDiv = sphereProp.LAT_SUB_DIVISIONS || 16;
 
 	var thetaRange = thetaEnd - thetaStart,
 		phiRange = phiEnd - phiStart;
 
-	for(var phi = 0; phi <= sphereProp.LONG_SUB_DIVISIONS; phi++) {
-		for(var theta = 0; theta <= sphereProp.LAT_SUB_DIVISIONS; theta++) {
-			var t = thetaStart + theta * (thetaRange / sphereProp.LAT_SUB_DIVISIONS),
-				p = phiStart + phi * (phiRange / sphereProp.LONG_SUB_DIVISIONS);
+	for(var phi = 0; phi <= longSubDiv; phi++) {
+		for(var theta = 0; theta <= latSubDiv; theta++) {
+			var t = thetaStart + theta * (thetaRange / latSubDiv),
+				p = phiStart + phi * (phiRange / longSubDiv);
 
 			var cosTheta = Math.cos(t),
 				sinTheta = Math.sin(t),
@@ -229,14 +243,16 @@ function createSphereGeometry(radius, sphereProp) {
 				z = radius * sinTheta * sinPhi;
 
 			vertices.push(vec3(x, y, z));
-			colors.push(vec4(1.0, 1.0, 1.0, 1.0));
+			
+			colors.push(sphereProp.color);
+			wireframeColors.push(sphereProp.wireframeColor);
 		}
 	}
 
 	//calculate indices
-	for(var theta = 0; theta < sphereProp.LAT_SUB_DIVISIONS; theta++) {
-		for(var phi = 0; phi < sphereProp.LONG_SUB_DIVISIONS; phi++) {
-			var totalPoints = (sphereProp.LAT_SUB_DIVISIONS + 1);
+	for(var theta = 0; theta < latSubDiv; theta++) {
+		for(var phi = 0; phi < longSubDiv; phi++) {
+			var totalPoints = (latSubDiv + 1);
 
 			//first triangle
 			indices.push(
@@ -254,11 +270,104 @@ function createSphereGeometry(radius, sphereProp) {
 		}
 	}
 
-	sphereGeometry.vertices = vertices;
-	sphereGeometry.indices = indices;
-	sphereGeometry.colors = colors;
+	return {
+		vertices : vertices,
+		indices: indices,
+		colors: colors,
+		wireframeColors: wireframeColors
+	}
+}
 
-	return sphereGeometry;
+function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, top, bottom) {
+	var vertices = [],
+		indices = [],
+		colors = [],
+		wireframeColors = [];
+
+	var radialSegment = cylinderProp.radialSegment || 16,
+		heightSegment = (top === true) ? cylinderProp.heightSegment || 1 : 1,
+		thetaStart = cylinderProp.thetaStart || 0,
+		thetaEnd = cylinderProp.thetaEnd || 2 * Math.PI,
+		thetaRange = thetaEnd - thetaStart;
+
+	for(var y = 0; y <= heightSegment; y++) {
+		for(var x = 0; x <= radialSegment; x++) {
+			var heightStep = y / heightSegment,
+				effectiveRadius = heightStep * (bottomRadius - topRadius) + topRadius,
+				thetaStep = x / radialSegment,
+				theta = thetaStart + thetaStep * thetaRange,
+				cosTheta = Math.cos(theta),
+				sinTheta = Math.sin(theta);
+
+			var vx = effectiveRadius * cosTheta,
+				vy = height / 2 - heightStep * height, //centered at origin
+				vz = effectiveRadius * sinTheta;
+
+			vertices.push(vec3(vx, vy, vz));
+			colors.push(cylinderProp.color);
+			wireframeColors.push(cylinderProp.wireframeColor);
+		}
+	}
+
+	//calculate indices
+	for(var y = 0; y < heightSegment; y++) {
+		for(var x = 0; x < radialSegment; x++) {
+			var totalPoints = radialSegment + 1;
+
+			indices.push(
+				y * totalPoints + (x + 1),
+				y * totalPoints + x,
+				(y + 1) * totalPoints + x
+			);
+
+			indices.push(
+				y * totalPoints + (x + 1),
+				(y + 1) * totalPoints + x,
+				(y + 1) * totalPoints + (x + 1)
+			);
+		}
+	}
+
+	//indices for top
+	if(top === true && topRadius > 0) {
+		//push center
+		vertices.push(vec3(0, height / 2, 0));
+		colors.push(cylinderProp.color);
+		wireframeColors.push(cylinderProp.wireframeColor);
+
+		for(var x = 0; x < radialSegment; x++) {
+			indices.push(
+				x,
+				x + 1,
+				vertices.length - 1
+			);
+		}
+	}
+
+	//indices for bottom
+	if(bottom === true && bottomRadius > 0) {
+		//push center
+		vertices.push(vec3(0, -height / 2, 0));
+		colors.push(cylinderProp.color);
+		wireframeColors.push(cylinderProp.wireframeColor);
+
+		for(var x = 0; x < radialSegment; x++) {
+			var totalPoints = radialSegment + 1;
+
+			indices.push(
+				heightSegment * totalPoints + x,
+				heightSegment * totalPoints + x + 1,
+				vertices.length - 1
+			);
+		}
+	}
+	
+	return {
+		vertices : vertices,
+		indices: indices,
+		colors: colors,
+		wireframeColors: wireframeColors
+	}
 }
 
 function sphere(translate, rotate, scale, radius) {
@@ -272,6 +381,19 @@ function sphere(translate, rotate, scale, radius) {
 	initShaderForShapes.call(this);
 }
 
+function cylinder(translate, rotate, scale, topRadius, bottomRadius, height, top, bottom) {
+	this.topRadius = topRadius || 1;
+	this.bottomRadius = bottomRadius || 1;
+	this.height = height || 1;
+
+	var cylinderGeometry = createCylinderGeometry(this.topRadius, this.bottomRadius, this.height, CYLINDER_PROPERTY, top, bottom);
+
+	shape.apply(this, [OBJECT_TYPE.CYLINDER, cylinderGeometry, translate, rotate, scale]);
+	
+	//set shader variables
+	initShaderForShapes.call(this);
+}
+
 //utility method to create shape and push it to the object pool
 function createShape(type, translate, rotate, scale) {
 	var obj;
@@ -279,6 +401,16 @@ function createShape(type, translate, rotate, scale) {
 	switch(type) {
 		case OBJECT_TYPE.SPHERE:
 			obj = new sphere(translate, rotate, scale, 1);
+
+			break;
+
+		case OBJECT_TYPE.CYLINDER:
+			obj = new cylinder(translate, rotate, scale, 1, 1, 2, true, true);
+			
+			break;
+
+		case OBJECT_TYPE.CONE:
+			obj = new cylinder(translate, rotate, scale, 0.00009, 1, 2, false, true);
 
 			break;
 	}
@@ -301,10 +433,10 @@ function initGL() {
 
     gl.viewport( 0, 0, canvas.width, canvas.height );
 	gl.clear( gl.COLOR_BUFFER_BIT );
-	gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
+	gl.clearColor(WORLD.worldColor[0], WORLD.worldColor[1], WORLD.worldColor[2], WORLD.worldColor[3]);
     
     gl.enable(gl.DEPTH_TEST);
-	gl.depthFunc(gl.LEQUAL);
+	//gl.depthFunc(gl.LEQUAL);
     
     gl.enable(gl.POLYGON_OFFSET_FILL);
     gl.polygonOffset(1.0, 2.0);
@@ -317,7 +449,10 @@ function initViewProjection() {
 }
 
 function createModel() {
-	createShape('SPHERE', vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
+	createShape(OBJECT_TYPE.SPHERE, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
+	//createShape(OBJECT_TYPE.SPHERE, vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.5, 0.5, 0.5));
+	//createShape(OBJECT_TYPE.CYLINDER, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
+	//createShape(OBJECT_TYPE.CONE, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
 }
 
 window.onload = function() {
@@ -332,14 +467,14 @@ window.onload = function() {
 
 function render() {
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
+	gl.clearColor(WORLD.worldColor[0], WORLD.worldColor[1], WORLD.worldColor[2], WORLD.worldColor[3]);
 	
 	for(var i = 0, l = objectPool.length; i < l; i++) {
 		gl.useProgram(objectPool[i].program);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, objectPool[i].buffer.verId);
 		gl.bufferData(gl.ARRAY_BUFFER, flatten(objectPool[i].buffer.verData), gl.STATIC_DRAW );
-		gl.vertexAttribPointer(objectPool[i].shaderVariables.vPosition, vertDim, gl.FLOAT, false, 0, 0);
+		gl.vertexAttribPointer(objectPool[i].shaderVariables.vPosition, WORLD.vertDim, gl.FLOAT, false, 0, 0);
     	gl.enableVertexAttribArray(objectPool[i].shaderVariables.vPosition);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, objectPool[i].buffer.colId);
@@ -347,8 +482,14 @@ function render() {
 		gl.vertexAttribPointer(objectPool[i].shaderVariables.vColor, 4, gl.FLOAT, false, 0, 0);
     	gl.enableVertexAttribArray(objectPool[i].shaderVariables.vColor);
 
-    	//gl.drawElements(gl.TRIANGLES, objectPool[i].buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
-    	gl.drawElements(gl.LINE_LOOP, objectPool[i].buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
+    	gl.drawElements(gl.TRIANGLES, objectPool[i].buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
+    	
+    	gl.bindBuffer(gl.ARRAY_BUFFER, objectPool[i].buffer.colId);
+		gl.bufferData(gl.ARRAY_BUFFER, flatten(objectPool[i].buffer.wireframeColorData), gl.STATIC_DRAW );
+		gl.vertexAttribPointer(objectPool[i].shaderVariables.vColor, 4, gl.FLOAT, false, 0, 0);
+    	gl.enableVertexAttribArray(objectPool[i].shaderVariables.vColor);
+
+    	gl.drawElements(gl.LINE_STRIP, objectPool[i].buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
 	}
 
 	window.requestAnimFrame(render);
