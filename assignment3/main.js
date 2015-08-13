@@ -1,3 +1,5 @@
+"use strict";
+
 /*var vertices1 = [
     vec3( -0.5, -0.5,  0.5 ),
     vec3( -0.5,  0.5,  0.5 ),
@@ -85,11 +87,11 @@ var canvas,
 //prespective camera properties
 var nearP = 0.3,
 	farP = 100.0,
-	aspect;
+	aspect,
 	fovy = 45.0;
 
 //ortho graphic camera properties
-var left = -5.0;
+var left = -5.0,
 	right = 5.0,
 	ytop = 5.0,
 	bottom = -5.0,
@@ -105,11 +107,18 @@ var eye = vec3(0.0, 0.5, cameraDistance);*/
 var radius = 5.0;
 var theta  = 0.0;
 var phi    = 0.0;
+var dr = 5.0 * Math.PI/180.0;
 
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 
 var eye = vec3(1.0, 5.0, radius);
+
+var tX = 0.0, tY = 0.0, tZ = 0.0, 
+	sX = 1.0, sY = 1.0, sZ = 1.0,
+	rX = 0.0, rY = 0.0, rZ = 0.0;
+
+var objectType = OBJECT_TYPE.SPHERE;
 
 //constructor to create an object
 //type property defines the object type
@@ -224,21 +233,22 @@ function drawShape(obj) {
 	gl.drawElements(gl.LINE_STRIP, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
 }
 
+function clearCanvas() {
+	objectPool.forEach(function(o) {
+		gl.deleteBuffer(o.idxId);
+		gl.deleteBuffer(o.verId);
+		gl.deleteBuffer(o.colId);
+
+		o.verData = [];
+		o.colData = [];
+		o.idxData = [];
+	});
+
+	objectPool.length = 0;
+}
+
 //store vertices for future
 function createSphereGeometry(radius, sphereProp) {
-	/*var wireframeColors = [];
-
-	for(var i = 0; i < vertices1.length; i++) {
-		wireframeColors.push(sphereProp.wireframeColor);
-	}
-
-	return {
-		vertices : vertices1,
-		indices: indices1,
-		colors: colors1,
-		wireframeColors: wireframeColors
-	}*/
-
 	var vertices = [],
 		indices = [],
 		colors = [],
@@ -282,15 +292,15 @@ function createSphereGeometry(radius, sphereProp) {
 
 			//first triangle
 			indices.push(
-				phi * totalPoints + theta,
 				phi * totalPoints + theta + 1,
-				(phi + 1) * totalPoints + theta
+				(phi + 1) * totalPoints + theta,
+				phi * totalPoints + theta
 			); 
 
 			//second triangle
 			indices.push(
-				(phi + 1) * totalPoints + theta + 1,
 				phi * totalPoints + theta + 1,
+				(phi + 1) * totalPoints + theta + 1,
 				(phi + 1) * totalPoints + theta
 			);
 		}
@@ -369,18 +379,6 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 				(y + 1) * totalPoints + x
 				
 			);
-			
-			/*indices.push(
-				y * totalPoints + x,
-				y * totalPoints + (x + 1),
-				(y + 1) * totalPoints + x
-			);
-
-			indices.push(
-				(y + 1) * totalPoints + x,
-				y * totalPoints + (x + 1),
-				(y + 1) * totalPoints + (x + 1)
-			);*/
 		}
 	}
 
@@ -495,13 +493,88 @@ function createModel() {
 	}*/
 }
 
+function initDOM() {
+	//sliders input
+	$('#translate-x-slider').change(function(e) {
+		tX = parseFloat($(this).val());
+	});
+
+	$('#translate-y-slider').change(function(e) {
+		tY = parseFloat($(this).val());
+	});
+
+	$('#translate-z-slider').change(function(e) {
+		tZ = parseFloat($(this).val());
+	});
+
+	$('#scale-x-slider').change(function(e) {
+		sX = parseFloat($(this).val());
+	});
+	
+	$('#scale-y-slider').change(function(e) {
+		sY = parseFloat($(this).val());
+	});
+	
+	$('#scale-z-slider').change(function(e) {
+		sZ = parseFloat($(this).val());
+	});
+
+	$('#rotate-x-slider').change(function(e) {
+		rX = parseFloat($(this).val());
+	});
+
+	$('#rotate-y-slider').change(function(e) {
+		rY = parseFloat($(this).val());
+	});
+
+	$('#rotate-z-slider').change(function(e) {
+		rZ = parseFloat($(this).val());
+	});
+
+	//menu input
+	$('#select-object').change(function(e) {
+		objectType = $(this).val();
+	});
+
+	//button input
+	$('#btn-add-object').click(function(e) {
+		createShape(objectType, vec3(tX, tY, tZ), vec3(rX, rY, rZ), vec3(sX, sY, sZ));
+	});
+
+	$('#btn-clear-canvas').click(function(e) {
+		clearCanvas();
+	});
+
+	$('#btn-camera-theta-increase').click(function(e) {
+		theta += dr;
+	});
+
+	$('#btn-camera-theta-decrease').click(function(e) {
+		theta -= dr;
+	});
+
+	$('#btn-camera-phi-increase').click(function(e) {
+		phi += dr;
+	});
+
+	$('#btn-camera-phi-decrease').click(function(e) {
+		phi -= dr;
+	});
+
+	$('#btn-camera-closer').click(function(e) {
+		radius -= 0.2;
+	});
+
+	$('#btn-camera-away').click(function(e) {
+		radius += 0.2;
+	});
+}
+
 window.onload = function() {
+	initDOM();
 	initCanvas();
 	initGL();
 	initViewProjection();
-
-	createModel();
-	
 	render();
 }
 
@@ -509,14 +582,14 @@ function render() {
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.clearColor(WORLD.worldColor[0], WORLD.worldColor[1], WORLD.worldColor[2], WORLD.worldColor[3]);
 	
-	/*eye = vec3(radius*Math.sin(theta)*Math.cos(phi), 
-        radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));*/
+	eye = vec3(radius*Math.sin(theta)*Math.cos(phi), 
+        radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
 
     initViewProjection();
 
-	for(var i = 0, l = objectPool.length; i < l; i++) {
-		objectPool[i].draw();
-	}
+	objectPool.forEach(function(o) {
+		o.draw();
+	});
 
 	window.requestAnimFrame(render);
 }
