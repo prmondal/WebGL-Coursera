@@ -102,7 +102,7 @@ var cameraDistance = 1.0;
 
 var eye = vec3(0.0, 0.5, cameraDistance);*/
 
-var radius = 8.0;
+var radius = 5.0;
 var theta  = 0.0;
 var phi    = 0.0;
 
@@ -477,9 +477,7 @@ function initGL() {
 
 function initViewProjection() {
 	modelView = lookAt(eye, at, up);
-	//perspective function problem
-	//near and far swapped
-	projection = perspective(fovy, aspect, farP, nearP);
+	projection = perspective(fovy, aspect, nearP, farP);
 	//projection = ortho(left, right, bottom, ytop, nearO, farO);
 }
 
