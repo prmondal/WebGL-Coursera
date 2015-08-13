@@ -79,85 +79,95 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="https://cdn.rawgit.com/evoluteur/colorpicker/master/js/evol.colorpicker.min.js" type="text/javascript"></script>
+
+	<!-- Latest compiled and minified JavaScript -->
+	<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>-->
 	
 	<link href="style.css" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/ui-lightness/jquery-ui.css">
 	<link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/evoluteur/colorpicker/master/css/evol.colorpicker.min.css">
+
+	<!-- Latest compiled and minified CSS -->
+	<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">-->
 </head>   
 
 <body>
-	<div id="container">
 		<div id="title-div">
 			<h2 id="title1">Interactive Computer Graphics with WebGL</h2>
-			<div id="colorstrip"></div>
 			<h3 id="title2">Assignment 3: GeoCAD</h3>
 		</div>
-
-		<div id="canvas-div">
-			<canvas id="gl-canvas" width="600" height="600">
-				Oops ... your browser doesn't support the HTML5 canvas element
-			</canvas>
-		</div>
-
-		<div id="controller-div">
-			<div id="add-object-controller">
-				<span>Select Object</div>
-				
-				<div>
+		
+		<div id="container">
+			<div id="controller-div">
+				<div id="add-object-controller">
+					<span>Select Object</span>
 					<select id="select-object">
 						<option value='SPHERE'>Sphere</option>
 						<option value='CYLINDER'>Cylinder</option>
 						<option value='CONE'>Cone</option>
 					</select>
 				</div>
+
+				<div id="checkbox-div">
+					<span style="color:rgb(132, 0, 255)">Wireframe Mode</span> : <input id="chkbx-wireframe" type="checkbox" value="false">
+				</div>
+
+				<div id="silder-controller">
+					<div class="translate-slider">
+						<span style="color:rgb(132, 0, 255)">TranslateX</span> <div>-10 <input id="translate-x-slider" type="range" min="-10" max="10" step="1" value="0" /> 10 </div>
+					</div>
+					<div class="translate-slider">
+						<span style="color:rgb(132, 0, 255)">TranslateY</span> <div>-10 <input  id="translate-y-slider" type="range" min="-10" max="10" step="1" value="0" /> 10 </div>
+					</div>
+					<div class="translate-slider">
+						<span style="color:rgb(132, 0, 255)">TranslateZ</span> <div>-10 <input id="translate-z-slider" type="range" min="-10" max="10" step="1" value="0" /> 10 </div>
+					</div>
+
+					<div class="scale-slider">
+						<span style="color:rgb(132, 0, 255)">ScaleX</span> <div>0.5 <input id="scale-x-slider" type="range" min="0.5" max="2.0" step="0.1" value="1.0" /> 5 </div>
+					</div>
+					<div class="scale-slider">
+						<span style="color:rgb(132, 0, 255)">ScaleY</span> <div>0.5 <input id="scale-y-slider" type="range" min="0.5" max="2.0" step="0.1" value="1.0" /> 5 </div>
+					</div>
+					<div class="scale-slider">
+						<span style="color:rgb(132, 0, 255)">ScaleZ</span> <div>0.5 <input id="scale-z-slider" type="range" min="0.5" max="2.0" step="0.1" value="1.0" /> 5 </div>
+					</div>
+
+					<div class="rotate-slider">
+						<span style="color:rgb(132, 0, 255)">RotateX</span> <div>-360 <input id="rotate-x-slider" type="range" min="-360" max="360" step="10" value="0" /> 360 </div>
+					</div>
+					<div class="rotate-slider">
+						<span style="color:rgb(132, 0, 255)">RotateY</span> <div>-360 <input id="rotate-y-slider" type="range" min="-360" max="360" step="10" value="0" /> 360 </div>
+					</div>
+					<div class="rotate-slider">
+						<span style="color:rgb(132, 0, 255)">RotateZ</span> <div>-360 <input id="rotate-z-slider" type="range" min="-360" max="360" step="10" value="0" /> 360 </div>
+					</div>
+				</div>
+
+				<div id="btn-scene-ctrls">
+					<button id="btn-add-object">Add</button>
+					<button id="btn-clear-canvas">Clear</button>
+				</div>
+
+				<div id="camera-ctrls"> <span style="color:rgb(132, 0, 255)">Camera Controls</span>
+					<div id="camera-btn-grp">
+						<button id="btn-camera-theta-increase">Increase Theta</button>
+						<button id="btn-camera-theta-decrease">Decrease Theta</button>
+
+						<button id="btn-camera-phi-increase">Increase Phi</button>
+						<button id="btn-camera-phi-decrease">Decrease Phi</button>
+
+						<button id="btn-camera-closer">Move Closer</button>
+						<button id="btn-camera-away">Move Away</button>
+
+						<button id="btn-camera-reset">Reset</button>
+					</div>
+				</div>
 			</div>
 
-			<div id="silder-controller">
-				<div class="translate-slider">
-					<span style="color:rgb(132, 0, 255)">TranslateX</span> -10 <input id="translate-x-slider" type="range" min="-10" max="10" step="1" value="0" /> 10
-				</div>
-				<div class="translate-slider">
-					<span style="color:rgb(132, 0, 255)">TranslateY</span> -10 <input  id="translate-y-slider" type="range" min="-10" max="10" step="1" value="0" /> 10
-				</div>
-				<div class="translate-slider">
-					<span style="color:rgb(132, 0, 255)">TranslateZ</span> -10 <input id="translate-z-slider" type="range" min="-10" max="10" step="1" value="0" /> 10
-				</div>
-
-				<div class="scale-slider">
-					<span style="color:rgb(132, 0, 255)">ScaleX</span> 0.5 <input id="scale-x-slider" type="range" min="0.5" max="2.0" step="0.1" value="1.0" /> 5
-				</div>
-				<div class="scale-slider">
-					<span style="color:rgb(132, 0, 255)">ScaleY</span> 0.5 <input id="scale-y-slider" type="range" min="0.5" max="2.0" step="0.1" value="1.0" /> 5
-				</div>
-				<div class="scale-slider">
-					<span style="color:rgb(132, 0, 255)">ScaleZ</span> 0.5 <input id="scale-z-slider" type="range" min="0.5" max="2.0" step="0.1" value="1.0" /> 5
-				</div>
-
-				<div class="rotate-slider">
-					<span style="color:rgb(132, 0, 255)">RotateX</span> -360 <input id="rotate-x-slider" type="range" min="-360" max="360" step="10" value="0" /> 360
-				</div>
-				<div class="rotate-slider">
-					<span style="color:rgb(132, 0, 255)">RotateY</span> -360 <input id="rotate-y-slider" type="range" min="-360" max="360" step="10" value="0" /> 360
-				</div>
-				<div class="rotate-slider">
-					<span style="color:rgb(132, 0, 255)">RotateZ</span> -360 <input id="rotate-z-slider" type="range" min="-360" max="360" step="10" value="0" /> 360
-				</div>
-			</div>
-
-			<div id="button-container">
-				<button id="btn-camera-theta-increase">Increase Theta</button>
-				<button id="btn-camera-theta-decrease">Decrease Theta</button>
-
-				<button id="btn-camera-phi-increase">Increase Phi</button>
-				<button id="btn-camera-phi-decrease">Decrease Phi</button>
-
-				<button id="btn-camera-closer">Move Closer</button>
-				<button id="btn-camera-away">Move Away</button>
-
-				<button id="btn-add-object">Add</button>
-				<button id="btn-clear-canvas">Clear</button>
-			</div>
+			<canvas id="gl-canvas" width="700" height="600">
+				Oops ... your browser doesn't support the HTML5 canvas element
+			</canvas>
 		</div>
-	</div>
 </body>
 </html>

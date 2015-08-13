@@ -119,6 +119,7 @@ var tX = 0.0, tY = 0.0, tZ = 0.0,
 	rX = 0.0, rY = 0.0, rZ = 0.0;
 
 var objectType = OBJECT_TYPE.SPHERE;
+var wireframe = false;
 
 //constructor to create an object
 //type property defines the object type
@@ -223,7 +224,7 @@ function drawShape(obj) {
 	gl.vertexAttribPointer(obj.shaderVariables.vColor, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(obj.shaderVariables.vColor);
 
-	gl.drawElements(gl.TRIANGLES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
+	if(wireframe === false) gl.drawElements(gl.TRIANGLES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
 	
 	gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer.colId);
 	gl.bufferData(gl.ARRAY_BUFFER, flatten(obj.buffer.wireframeColorData), gl.STATIC_DRAW );
@@ -496,15 +497,15 @@ function createModel() {
 function initDOM() {
 	//sliders input
 	$('#translate-x-slider').change(function(e) {
-		tX = parseFloat($(this).val());
+		tX = parseFloat($(this).val()) / 5;
 	});
 
 	$('#translate-y-slider').change(function(e) {
-		tY = parseFloat($(this).val());
+		tY = parseFloat($(this).val()) / 5;
 	});
 
 	$('#translate-z-slider').change(function(e) {
-		tZ = parseFloat($(this).val());
+		tZ = parseFloat($(this).val()) / 5;
 	});
 
 	$('#scale-x-slider').change(function(e) {
@@ -567,6 +568,16 @@ function initDOM() {
 
 	$('#btn-camera-away').click(function(e) {
 		radius += 0.2;
+	});
+
+	$('#btn-camera-reset').click(function(e) {
+		theta = 0;
+		phi = 0;
+		radius = 5.0;
+	});
+
+	$('#chkbx-wireframe').click(function(e) {
+		wireframe = !wireframe;
 	});
 }
 
