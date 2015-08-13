@@ -42,8 +42,8 @@ var indices1 = [
 var WORLD = {
 	vertDim: 3,
 	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
-	worldColor: vec4(67 / 255, 70 / 255, 84 / 255) //vec4(50 / 255, 71 / 255, 64 / 255, 1.0)//vec4(0.0, 0.0, 0.0, 1.0)
-};
+	worldColor: vec4(0.26, 0.274, 0.32)
+}
 
 var OBJECT_TYPE = {
 	SPHERE: 'SPHERE',
@@ -60,8 +60,8 @@ var SPHERE_PROPERTY = {
 	phiStart: 0, 
 	phiEnd: 2 * Math.PI,
 
-	color: vec4(1.0, 1.0, 0.0, 1.0),
-	wireframeColor: vec4(1.0, 0.0, 0.0, 1.0)
+	color: vec4(0.2, 0.8, 0.2, 1.0),
+	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
 var CYLINDER_PROPERTY = {
@@ -72,10 +72,10 @@ var CYLINDER_PROPERTY = {
 	top: true,
 	bottom: true,
 
-	color: vec4(0.0, 0.0, 1.0, 1.0),
-	coneColor: vec4(0.0, 1.0, 0.0, 1.0),
-	coneWireframeColor: vec4(0.0, 0.0, 1.0, 1.0),
-	wireframeColor: vec4(1.0, 0.0, 1.0, 1.0)
+	color: vec4(0.0, 0.6, 1.0, 1.0),
+	coneColor: vec4(1.0, 0.6, 0.0, 1.0),
+	coneWireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
+	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
 var canvas, 
@@ -120,6 +120,7 @@ var tX = 0.0, tY = 0.0, tZ = 0.0,
 
 var objectType = OBJECT_TYPE.SPHERE;
 var wireframe = false;
+var shapeColor;
 
 //constructor to create an object
 //type property defines the object type
@@ -480,18 +481,16 @@ function initViewProjection() {
 	//projection = ortho(left, right, bottom, ytop, nearO, farO);
 }
 
-function createModel() {
-	createShape(OBJECT_TYPE.SPHERE, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
-	createShape(OBJECT_TYPE.CYLINDER, vec3(2.0, 0.0, 0.0), vec3(0.0, 0.0, 45.0), vec3(1.0, 1.0, 1.0));
-	createShape(OBJECT_TYPE.CONE, vec3(-2.0, 0.0, 0.0), vec3(-30.0, 0.0, -45.0), vec3(1.0, 1.0, 1.0));
+function hexToRGB(hex) {
+    hex = hex.substr(1);
+    
+    var rgb = parseInt(hex, 16);
 
-	//createShape(OBJECT_TYPE.CYLINDER, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
-
-	/*for(var i = -4; i < 5; i++) {
-		createShape(OBJECT_TYPE.SPHERE, vec3(i, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.5, 0.5, 0.5));
-		createShape(OBJECT_TYPE.CONE, vec3(i, 0.7, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.3, 0.3, 0.3));
-		createShape(OBJECT_TYPE.CYLINDER, vec3(i, -0.7, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.2, 0.2, 0.2))
-	}*/
+    var r = (rgb >> 16) & 0xFF;
+    var g = (rgb >> 8) & 0xFF;
+    var b = rgb & 0xFF;
+    
+    return vec4(r / 255.0, g / 255.0, b / 255.0, 1.0);
 }
 
 function initDOM() {
@@ -539,6 +538,16 @@ function initDOM() {
 
 	//button input
 	$('#btn-add-object').click(function(e) {
+		if(shapeColor !== undefined) {
+			if($('#select-object').val() === OBJECT_TYPE.SPHERE) {
+ 				SPHERE_PROPERTY.color = shapeColor;
+ 			} else if($('#select-object').val() === OBJECT_TYPE.CYLINDER) {
+ 				CYLINDER_PROPERTY.color = shapeColor;
+ 			} else if($('#select-object').val() === OBJECT_TYPE.CONE) {
+ 				CYLINDER_PROPERTY.coneColor = shapeColor;
+ 			}
+		}
+
 		createShape(objectType, vec3(tX, tY, tZ), vec3(rX, rY, rZ), vec3(sX, sY, sZ));
 	});
 
@@ -579,6 +588,16 @@ function initDOM() {
 	$('#chkbx-wireframe').click(function(e) {
 		wireframe = !wireframe;
 	});
+
+	$("#brush-color").colorpicker({
+        color: '#33CC33',
+        defaultPalette: 'web'
+    });
+
+    //update paint color
+    $("#brush-color").on("change.color", function(e, color){
+        shapeColor = hexToRGB(color);
+    });
 }
 
 window.onload = function() {
