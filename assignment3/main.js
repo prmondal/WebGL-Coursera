@@ -79,6 +79,38 @@ var CYLINDER_PROPERTY = {
 	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
+var geoCache = {
+	sphere: {
+		geometry: {
+			vertices : [],
+			indices: [],
+			colors: [],
+			wireframeColors: []
+		},
+		cached: false
+	},
+
+	cylinder: {
+		geometry: {
+			vertices : [],
+			indices: [],
+			colors: [],
+			wireframeColors: []
+		},
+		cached: false
+	},
+
+	cone: {
+		geometry: {
+			vertices : [],
+			indices: [],
+			colors: [],
+			wireframeColors: []
+		},
+		cached: false
+	}
+}
+
 var canvas, 
 	gl,
 	objectPool = [],
@@ -259,6 +291,11 @@ function clearCanvas() {
 
 //store vertices for future
 function createSphereGeometry(radius, sphereProp) {
+	if(geoCache.sphere.cached === true) {
+		console.log('cached');
+		return geoCache.sphere.geometry;
+	}
+
 	var vertices = [],
 		indices = [],
 		colors = [],
@@ -317,15 +354,32 @@ function createSphereGeometry(radius, sphereProp) {
 		}
 	}
 
-	return {
+	var g = {
 		vertices : vertices,
 		indices: indices,
 		colors: colors,
 		wireframeColors: wireframeColors
-	}
+	};
+
+	geoCache.sphere.geometry = g;
+	geoCache.sphere.cached = true;
+
+	return g;
 }
 
 function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, top, bottom) {
+	if(top === true) {
+		if(geoCache.cylinder.cached === true) {
+			console.log('cached');
+			return geoCache.cylinder.geometry;
+		}
+	} else {
+		if(geoCache.cone.cached === true) {
+			console.log('cached');
+			return geoCache.cone.geometry;
+		}
+	}
+
 	var vertices = [],
 		indices = [],
 		colors = [],
@@ -408,13 +462,23 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 			);
 		}
 	}
-	
-	return {
+
+	var g = {
 		vertices : vertices,
 		indices: indices,
 		colors: colors,
 		wireframeColors: wireframeColors
+	};
+
+	if(top === true) {
+		geoCache.cylinder.geometry = g;
+		geoCache.cylinder.cached = true;
+	} else {
+		geoCache.cone.geometry = g;
+		geoCache.cone.cached = true;
 	}
+
+	return g;
 }
 
 function createAxisCarpetGeometry() {
