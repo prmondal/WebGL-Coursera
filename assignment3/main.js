@@ -49,6 +49,7 @@ var OBJECT_TYPE = {
 	SPHERE: 'SPHERE',
 	CONE: 'CONE',
 	CYLINDER: 'CYLINDER',
+	FUNNEL: 'FUNNEL',
 	AXIS_CARPET: 'AXIS_CARPET'
 };
 
@@ -76,7 +77,9 @@ var CYLINDER_PROPERTY = {
 	color: vec4(0.0, 0.6, 1.0, 1.0),
 	coneColor: vec4(1.0, 0.6, 0.0, 1.0),
 	coneWireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
-	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
+	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
+	funnelColor: vec4(0, 0.8, 0.6, 1),
+	funnelWireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
 var geoCache = {
@@ -101,6 +104,16 @@ var geoCache = {
 	},
 
 	cone: {
+		geometry: {
+			vertices : [],
+			indices: [],
+			colors: [],
+			wireframeColors: []
+		},
+		cached: false
+	},
+
+	funnel: {
 		geometry: {
 			vertices : [],
 			indices: [],
@@ -371,9 +384,13 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 		if(geoCache.cylinder.cached === true) {
 			return geoCache.cylinder.geometry;
 		}
-	} else {
+	} else if(bottom === true) {
 		if(geoCache.cone.cached === true) {
 			return geoCache.cone.geometry;
+		}
+	} else {
+		if(geoCache.funnel.cached === true) {
+			return geoCache.funnel.geometry;
 		}
 	}
 
@@ -402,8 +419,10 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 				vz = effectiveRadius * sinTheta;
 
 			vertices.push(vec3(vx, vy, vz));
-			colors.push((top === false) ? cylinderProp.coneColor : cylinderProp.color);
-			wireframeColors.push((top === false) ? cylinderProp.coneWireframeColor : cylinderProp.wireframeColor);
+			colors.push((top === false && bottom === false) ? cylinderProp.funnelColor : ((top === false) ? cylinderProp.coneColor : cylinderProp.color));
+			//colors.push((top === false) ? cylinderProp.coneColor : cylinderProp.color);
+			wireframeColors.push((top === false && bottom === false) ? cylinderProp.coneWireframeColor : ((top === false) ? cylinderProp.funnelWireframeColor : cylinderProp.wireframeColor));
+			//wireframeColors.push((top === false) ? cylinderProp.coneWireframeColor : cylinderProp.wireframeColor);
 		}
 	}
 
@@ -470,9 +489,12 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 	if(top === true) {
 		geoCache.cylinder.geometry = g;
 		geoCache.cylinder.cached = true;
-	} else {
+	} else if(bottom === true) {
 		geoCache.cone.geometry = g;
 		geoCache.cone.cached = true;
+	} else {
+		geoCache.funnel.geometry = g;
+		geoCache.funnel.cached = true;
 	}
 
 	return g;
@@ -588,6 +610,20 @@ function cylinder(translate, rotate, scale, topRadius, bottomRadius, height, top
 	this.topRadius = topRadius || 1;
 	this.bottomRadius = bottomRadius || 1;
 	this.height = height || 1;
+	this.top = top;
+	this.bottom = bottom;
+
+	var cylinderGeometry = createCylinderGeometry(this.topRadius, this.bottomRadius, this.height, CYLINDER_PROPERTY, top, bottom);
+
+	shape.apply(this, [OBJECT_TYPE.CYLINDER, cylinderGeometry, translate, rotate, scale]);
+}
+
+function funnel(translate, rotate, scale, topRadius, bottomRadius, height, top, bottom) {
+	this.topRadius = topRadius || 1;
+	this.bottomRadius = bottomRadius || 1;
+	this.height = height || 1;
+	this.top = top;
+	this.bottom = bottom;
 
 	var cylinderGeometry = createCylinderGeometry(this.topRadius, this.bottomRadius, this.height, CYLINDER_PROPERTY, top, bottom);
 
@@ -615,6 +651,10 @@ function createShape(type, translate, rotate, scale) {
 
 		case OBJECT_TYPE.CONE:
 			obj = new cylinder(translate, rotate, scale, 0.00001, 0.5, 1, false, true);
+			break;
+
+		case OBJECT_TYPE.FUNNEL:
+			obj = new cylinder(translate, rotate, scale, 0.5, 1.0, 1, false, false);
 			break;
 	}
 
@@ -670,6 +710,16 @@ function resetController() {
 	$('#translate-x-slider').attr('value', 0);
 }
 
+function updateObjectColorInCache(obj) {
+	if(obj.cached === true) {
+		obj.geometry.colors = [];
+
+		for(var i = 0, l = obj.geometry.vertices.length; i < l; i++) {
+			obj.geometry.colors.push(shapeColor);
+		}
+	}
+}
+
 function initDOM() {
 	//sliders input
 	$('#translate-x-slider').change(function(e) {
@@ -718,10 +768,20 @@ function initDOM() {
 		if(shapeColor !== undefined) {
 			if($('#select-object').val() === OBJECT_TYPE.SPHERE) {
  				SPHERE_PROPERTY.color = shapeColor;
+
+ 				updateObjectColorInCache(geoCache.sphere);
  			} else if($('#select-object').val() === OBJECT_TYPE.CYLINDER) {
  				CYLINDER_PROPERTY.color = shapeColor;
+
+ 				updateObjectColorInCache(geoCache.cylinder);
  			} else if($('#select-object').val() === OBJECT_TYPE.CONE) {
  				CYLINDER_PROPERTY.coneColor = shapeColor;
+
+ 				updateObjectColorInCache(geoCache.cone);
+ 			} else if($('#select-object').val() === OBJECT_TYPE.FUNNEL) {
+ 				CYLINDER_PROPERTY.funnelColor = shapeColor;
+
+ 				updateObjectColorInCache(geoCache.funnel);
  			}
 		}
 
