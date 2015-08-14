@@ -144,7 +144,7 @@ var phi    = 51.04;
 var dr = 5.0 * Math.PI/180.0;
 
 const at = vec3(0.0, 0.0, 0.0);
-const up = vec3(0.0, 1.0, 0.0);
+var up = vec3(0.0, 1.0, 0.0);
 
 var eye = vec3(1.0, 5.0, radius);
 
@@ -292,7 +292,6 @@ function clearCanvas() {
 //store vertices for future
 function createSphereGeometry(radius, sphereProp) {
 	if(geoCache.sphere.cached === true) {
-		console.log('cached');
 		return geoCache.sphere.geometry;
 	}
 
@@ -370,12 +369,10 @@ function createSphereGeometry(radius, sphereProp) {
 function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, top, bottom) {
 	if(top === true) {
 		if(geoCache.cylinder.cached === true) {
-			console.log('cached');
 			return geoCache.cylinder.geometry;
 		}
 	} else {
 		if(geoCache.cone.cached === true) {
-			console.log('cached');
 			return geoCache.cone.geometry;
 		}
 	}
@@ -795,7 +792,6 @@ window.onload = function() {
 	initCanvas();
 	initGL();
 	initViewProjection();
-
 	initAxisGeometry();
 	render();
 }
@@ -806,8 +802,10 @@ function render() {
 	
 	eye = vec3(radius*Math.sin(theta)*Math.cos(phi), 
         radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
-
-    initViewProjection();
+	/*eye = vec3(radius*Math.sin(theta)*Math.cos(phi), -radius*Math.cos(theta),
+        radius*Math.sin(theta)*Math.sin(phi));*/
+	
+	initViewProjection();
 
     //draw axis
     axisCarpets.forEach(function(c) {
