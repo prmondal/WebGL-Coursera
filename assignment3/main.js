@@ -104,7 +104,7 @@ var cameraDistance = 1.0;
 
 var eye = vec3(0.0, 0.5, cameraDistance);*/
 
-var radius = 5.0;
+var radius = 8.0;
 var theta  = 0.0;
 var phi    = 0.0;
 var dr = 5.0 * Math.PI/180.0;
@@ -582,7 +582,7 @@ function initDOM() {
 	$('#btn-camera-reset').click(function(e) {
 		theta = 0;
 		phi = 0;
-		radius = 5.0;
+		radius = 8.0;
 	});
 
 	$('#chkbx-wireframe').click(function(e) {
