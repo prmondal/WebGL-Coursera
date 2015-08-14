@@ -156,7 +156,7 @@ var theta  = 45;
 var phi    = 51.04;
 var dr = 5.0 * Math.PI/180.0;
 
-const at = vec3(0.0, 0.0, 0.0);
+var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
 var eye = vec3(1.0, 5.0, radius);
