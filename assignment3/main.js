@@ -48,7 +48,8 @@ var WORLD = {
 var OBJECT_TYPE = {
 	SPHERE: 'SPHERE',
 	CONE: 'CONE',
-	CYLINDER: 'CYLINDER'
+	CYLINDER: 'CYLINDER',
+	AXIS_CARPET: 'AXIS_CARPET'
 };
 
 var SPHERE_PROPERTY = {
@@ -60,7 +61,7 @@ var SPHERE_PROPERTY = {
 	phiStart: 0, 
 	phiEnd: 2 * Math.PI,
 
-	color: vec4(0.2, 0.8, 0.2, 1.0),
+	color: vec4(0.8, 0, 1, 1),
 	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
@@ -81,6 +82,7 @@ var CYLINDER_PROPERTY = {
 var canvas, 
 	gl,
 	objectPool = [],
+	axisCarpets = [],
 	modelView,
 	projection;
 
@@ -105,8 +107,8 @@ var cameraDistance = 1.0;
 var eye = vec3(0.0, 0.5, cameraDistance);*/
 
 var radius = 8.0;
-var theta  = 0.0;
-var phi    = 0.0;
+var theta  = 45;
+var phi    = 51.04;
 var dr = 5.0 * Math.PI/180.0;
 
 const at = vec3(0.0, 0.0, 0.0);
@@ -141,7 +143,7 @@ function shape(type, shapeProp, translate, rotate, scale) {
 	this.type = type;
 
 	this.translate = translate || vec3(0.0, 0.0, 0.0);
-	this.rotate = vec3(radians(rotate[0]), radians(rotate[1]), radians(rotate[2])) || vec3(0.0, 0.0, 0.0);
+	this.rotate = (rotate) ? vec3(radians(rotate[0]), radians(rotate[1]), radians(rotate[2])) : vec3(0.0, 0.0, 0.0);
 	this.scale = scale || vec3(1.0, 1.0, 1.0);
 
 	this.program = initShaders( gl, "vertex-shader", "fragment-shader" );
@@ -225,14 +227,20 @@ function drawShape(obj) {
 	gl.vertexAttribPointer(obj.shaderVariables.vColor, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(obj.shaderVariables.vColor);
 
-	if(wireframe === false) gl.drawElements(gl.TRIANGLES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
+	if(wireframe === false && obj.type !== OBJECT_TYPE.AXIS_CARPET) {
+		gl.drawElements(gl.TRIANGLES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
+	}
 	
 	gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer.colId);
 	gl.bufferData(gl.ARRAY_BUFFER, flatten(obj.buffer.wireframeColorData), gl.STATIC_DRAW );
 	gl.vertexAttribPointer(obj.shaderVariables.vColor, 4, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(obj.shaderVariables.vColor);
 
-	gl.drawElements(gl.LINE_STRIP, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
+	if(obj.type === OBJECT_TYPE.AXIS_CARPET) {
+		gl.drawElements(gl.LINES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
+	} else {
+		gl.drawElements(gl.LINE_STRIP, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
+	}
 }
 
 function clearCanvas() {
@@ -295,15 +303,16 @@ function createSphereGeometry(radius, sphereProp) {
 			//first triangle
 			indices.push(
 				phi * totalPoints + theta + 1,
-				(phi + 1) * totalPoints + theta,
-				phi * totalPoints + theta
+				phi * totalPoints + theta,
+				(phi + 1) * totalPoints + theta
 			); 
 
 			//second triangle
 			indices.push(
-				phi * totalPoints + theta + 1,
+				(phi + 1) * totalPoints + theta,
 				(phi + 1) * totalPoints + theta + 1,
-				(phi + 1) * totalPoints + theta
+				
+				phi * totalPoints + theta + 1
 			);
 		}
 	}
@@ -370,16 +379,14 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 
 			indices.push(
 				y * totalPoints + (x + 1),
-				(y + 1) * totalPoints + x,
-				y * totalPoints + x
-				
+				y * totalPoints + x,
+				(y + 1) * totalPoints + x
 			);
 
 			indices.push(
-				y * totalPoints + (x + 1),
+				(y + 1) * totalPoints + x,
 				(y + 1) * totalPoints + (x + 1),
-				(y + 1) * totalPoints + x
-				
+				y * totalPoints + (x + 1)
 			);
 		}
 	}
@@ -410,6 +417,104 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 	}
 }
 
+function createAxisCarpetGeometry() {
+	var xmax = 4,
+		xmin = 0,
+		zmax = 2,
+		zmin = 0,
+		step = 1.0;
+
+	var vertices = [],
+		indices = [],
+		colors = [],
+		wireframeColors = [];
+
+	for(var z = zmin; z <= zmax; z += step) {
+		for(var x = xmin; x <= xmax; x += step) {
+			vertices.push(vec3(x, 0.0, z));
+			colors.push(vec4(0.0, 1.0, 1.0, 1.0));
+			wireframeColors.push(vec4(1.0, 1.0, 1.0, 1.0));
+		}
+	}
+	
+	for(var z = zmax; z > zmin; z -= step) {
+		for(var x = xmax; x > xmin; x -= step) {
+			var totalPoints = (xmax - xmin) / step + 1;
+
+			indices.push(
+				(z - 1) * totalPoints + x - 1,
+				(z - 1) * totalPoints + x,
+				z * totalPoints + x
+			);
+
+			indices.push(
+				z * totalPoints + x,
+				z * totalPoints + x - 1,
+				(z - 1) * totalPoints + (x - 1)
+			);
+		}
+	}
+
+	return {
+		vertices : vertices,
+		indices: indices,
+		colors: colors,
+		wireframeColors: wireframeColors
+	}	
+}
+
+function createAxisLinesGeometry() {
+	var vertices = [],
+		indices = [],
+		colors = [],
+		wireframeColors = [];
+
+	var length = 1000,
+		xcolor = vec4(1.0, 0.0, 0.0, 1.0),
+		ycolor = vec4(0.0, 1.0, 0.0, 1.0),
+		zcolor = vec4(0.0, 0.0, 1.0, 1.0);
+
+	//x-axis
+	vertices.push(vec3(-length, 0.0, 0.0));
+	colors.push(xcolor);
+	wireframeColors.push(xcolor);
+	
+	vertices.push(vec3(length, 0.0, 0.0));
+	colors.push(xcolor);
+	wireframeColors.push(xcolor);
+
+	//y-axis
+	vertices.push(vec3(0.0, -length, 0.0));
+	colors.push(ycolor);
+	wireframeColors.push(ycolor);
+	
+	vertices.push(vec3(0.0, length, 0.0));
+	colors.push(ycolor);
+	wireframeColors.push(ycolor);
+
+	//z-axis
+	vertices.push(vec3(0.0, 0.0, -length));
+	colors.push(zcolor);
+	wireframeColors.push(zcolor);
+	
+	vertices.push(vec3(0.0, 0.0, length));
+	colors.push(zcolor);
+	wireframeColors.push(zcolor);
+
+	indices.push(
+		0, 1,
+		2, 3,
+		4, 5
+	);
+
+	return {
+		vertices : vertices,
+		indices: indices,
+		colors: colors,
+		wireframeColors: wireframeColors
+	}
+}
+
 function sphere(translate, rotate, scale, radius) {
 	this.radius = radius || 1;
 
@@ -426,6 +531,12 @@ function cylinder(translate, rotate, scale, topRadius, bottomRadius, height, top
 	var cylinderGeometry = createCylinderGeometry(this.topRadius, this.bottomRadius, this.height, CYLINDER_PROPERTY, top, bottom);
 
 	shape.apply(this, [OBJECT_TYPE.CYLINDER, cylinderGeometry, translate, rotate, scale]);
+}
+
+function axisCarpet() {
+	var axisCarpetGeometry = createAxisLinesGeometry();//createAxisCarpetGeometry();
+
+	shape.apply(this, [OBJECT_TYPE.AXIS_CARPET, axisCarpetGeometry]);
 }
 
 //utility method to create shape and push it to the object pool
@@ -493,6 +604,11 @@ function hexToRGB(hex) {
     return vec4(r / 255.0, g / 255.0, b / 255.0, 1.0);
 }
 
+//TODO
+function resetController() {
+	$('#translate-x-slider').attr('value', 0);
+}
+
 function initDOM() {
 	//sliders input
 	$('#translate-x-slider').change(function(e) {
@@ -555,6 +671,10 @@ function initDOM() {
 		clearCanvas();
 	});
 
+	$('#btn-reset-controller').click(function(e) {
+		resetController();
+	});
+
 	$('#btn-camera-theta-increase').click(function(e) {
 		theta += dr;
 	});
@@ -580,8 +700,8 @@ function initDOM() {
 	});
 
 	$('#btn-camera-reset').click(function(e) {
-		theta = 0;
-		phi = 0;
+		theta  = 45;
+		phi = 51.04;
 		radius = 8.0;
 	});
 
@@ -590,7 +710,7 @@ function initDOM() {
 	});
 
 	$("#brush-color").colorpicker({
-        color: '#33CC33',
+        color: '#cc33ff',
         defaultPalette: 'web'
     });
 
@@ -600,11 +720,19 @@ function initDOM() {
     });
 }
 
+function initAxisGeometry() {
+	var carpetXZ = new axisCarpet();
+
+	axisCarpets.push(carpetXZ);
+}
+
 window.onload = function() {
 	initDOM();
 	initCanvas();
 	initGL();
 	initViewProjection();
+
+	initAxisGeometry();
 	render();
 }
 
@@ -616,6 +744,11 @@ function render() {
         radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
 
     initViewProjection();
+
+    //draw axis
+    axisCarpets.forEach(function(c) {
+    	c.draw();
+    });
 
 	objectPool.forEach(function(o) {
 		o.draw();
