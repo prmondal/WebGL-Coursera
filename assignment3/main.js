@@ -145,12 +145,6 @@ var left = -5.0,
 	nearO = -5,
 	farO = 5;
 
-/*const at = vec3(0.0, -1.0, 0.0);
-const up = vec3(0.0, 1.0, 0.0);
-var cameraDistance = 1.0;
-
-var eye = vec3(0.0, 0.5, cameraDistance);*/
-
 var radius = 8.0;
 var theta  = 45;
 var phi    = 51.04;
@@ -790,6 +784,12 @@ function initDOM() {
 
 	$('#btn-clear-canvas').click(function(e) {
 		clearCanvas();
+	});
+
+	$('#btn-undo').click(function(e) {
+		if(objectPool.length > 0) {
+			objectPool.splice(objectPool.length - 1, 1)
+		}
 	});
 
 	$('#btn-reset-controller').click(function(e) {
