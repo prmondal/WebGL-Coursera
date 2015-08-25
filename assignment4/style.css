@@ -1,0 +1,210 @@
+#title-div {
+	text-align: center;
+}
+
+#title-div h2 {
+	border-bottom: 2px solid #cccccc;
+    color: #cc0000;
+    font-family: "Arial Rounded MT Bold","Helvetica Rounded",Arial,sans-serif;
+    font-size: 25px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 500;
+    line-height: 26.4px;
+    padding-bottom: 9px;
+    width: 530px;
+    margin: auto;
+}
+
+#title-div h3 {
+	font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
+	font-size: 16px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 500;
+	line-height: 15.3999996185303px;
+	color: #003300;
+	margin: 10px auto auto;
+}
+
+#container {
+	margin-top: 18px;
+}
+
+#silder-controller {
+	margin-top: 62px;
+	margin-left: 10px;
+}
+
+span {
+	color: #CE3818;
+}
+
+#btn-scene-ctrls {
+	margin-top: 20px;
+	position: relative;
+	left: 30%;
+	right: 30%;
+	width: 35%;
+}
+
+#camera-ctrls {
+	margin-top: 8px;
+}
+
+#camera-btn-grp {
+	margin-top: 10px;
+}
+
+#checkbox-div {
+	float: left;
+	margin-top: 12px;
+	margin-left: 130px;
+}
+
+#add-object-controller {
+	float: left;
+}
+
+#add-object-controller span {
+	color: #807BB7;
+}
+
+#add-object-controller select{
+	margin-left: 10px;
+}
+
+#add-object-controller span{
+	float: left;
+}
+
+#shape-color {
+	clear: left;
+	float: left;
+	margin-left: -10px;
+	margin-top: 10px;
+}
+
+#color-txt {
+	float: left;
+	margin-left: 10px;
+}
+
+#brush-color-div {
+	float: left;
+	margin-left: 10px;
+	margin-top: -2px;
+}
+
+canvas {
+	margin-left: 30px;
+	border-radius: 10px;
+}
+
+#controller-div {
+    border: 1px solid #50aacd;
+    border-radius: 10px;
+    float: left;
+    padding: 16px;
+    width: 30%;
+    margin-left: 120px;
+    height: 566px;
+}
+
+input[type=range]{
+    /* fix for FF unable to apply focus style bug  */
+    border: 1px solid white; 
+
+    /*required for proper track sizing in FF*/
+    width: 300px;
+
+    -webkit-appearance: none;
+}
+
+input[type=range]::-moz-range-track {
+    width: 300px;
+    height: 5px;
+    background: #ddd;
+    border: none;
+    border-radius: 3px;
+}
+
+input[type=range]::-moz-range-thumb {
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background:  #50AACD;
+}
+
+/*hide the outline behind the border*/
+input[type=range]:-moz-focusring{
+    outline: 1px solid white;
+    outline-offset: -1px;
+}
+
+input[type=range]:focus::-moz-range-track {
+    background: #ccc;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    width: 300px;
+    height: 5px;
+    background: #ddd;
+    border: none;
+    border-radius: 3px;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #50AACD;
+    margin-top: -4px;
+}
+
+input[type=range]:focus {
+    outline: none;
+}
+
+input[type=range]:focus::-webkit-slider-runnable-track {
+    background: #ccc;
+}
+
+input[type=range]::-ms-track {
+    width: 300px;
+    height: 5px;
+    
+    /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
+    background: transparent;
+    
+    /*leave room for the larger thumb to overflow with a transparent border */
+    border-color: transparent;
+    border-width: 6px 0;
+
+    /*remove default tick marks*/
+    color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+    background: #777;
+    border-radius: 10px;
+}
+input[type=range]::-ms-fill-upper {
+    background: #ddd;
+    border-radius: 10px;
+}
+input[type=range]::-ms-thumb {
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background:  #50AACD;
+}
+input[type=range]:focus::-ms-fill-lower {
+    background: #888;
+}
+input[type=range]:focus::-ms-fill-upper {
+    background: #ccc;
+}
