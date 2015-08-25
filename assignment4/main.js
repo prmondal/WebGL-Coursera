@@ -3,13 +3,30 @@
 var WORLD = {
 	vertDim: 3,
 	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
-	worldColor: vec4(0.26, 0.274, 0.32)
-};
+	worldColor: vec4(0.26, 0.274, 0.32),
 
-var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
-var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
-var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
-var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+	numberOfLights: 2,
+	lights: [{
+		position: vec4(1.0, 0.0, 0.0, 0.0 ),
+		ambient: vec4(0.2, 0.2, 0.2, 1.0 ),
+		diffuse: vec4( 1.0, 1.0, 1.0, 1.0 ),
+		specular: vec4( 1.0, 0.0, 1.0, 1.0 ),
+
+		constantAttenuation: 1.0,
+		linearAttenuation: 1.0,
+		quadraticAttenuation: 1.0
+	},
+	{
+		position: vec4(0.0, 1.0, 0.0, 0.0 ),
+		ambient: vec4(0.2, 0.2, 0.2, 1.0 ),
+		diffuse: vec4( 1.0, 1.0, 1.0, 1.0 ),
+		specular: vec4( 1.0, 1.0, 1.0, 1.0 ),
+
+		constantAttenuation: 1.0,
+		linearAttenuation: 0.0,
+		quadraticAttenuation: 0.0
+	}]
+};
 
 var OBJECT_TYPE = {
 	SPHERE: 'SPHERE',
@@ -199,7 +216,6 @@ function shape(type, shapeProp, translate, rotate, scale) {
 	this.shaderVariables = {
 		vPosition: gl.getAttribLocation(this.program, "vPosition"),
 		vNormal: gl.getAttribLocation(this.program, "vNormal"),
-		//vColor: gl.getAttribLocation(this.program, "vColor"),
 
 		modelView: gl.getUniformLocation(this.program, "modelView"),
 		projection: gl.getUniformLocation(this.program, "projection"),
@@ -208,12 +224,31 @@ function shape(type, shapeProp, translate, rotate, scale) {
 		rotate: gl.getUniformLocation(this.program, "rotation"),
 		scale: gl.getUniformLocation(this.program, "scale"),
 
-		ambientProduct: gl.getUniformLocation(this.program, "ambientProduct"),
-		diffuseProduct: gl.getUniformLocation(this.program, "diffuseProduct"),
-		specularProduct: gl.getUniformLocation(this.program, "specularProduct"),
+		matAmbientColor: gl.getUniformLocation(this.program, "matAmbientColor"),
+		matDiffuseColor: gl.getUniformLocation(this.program, "matDiffuseColor"),
+		matSpecularColor: gl.getUniformLocation(this.program, "matSpecularColor"),
 		shininess: gl.getUniformLocation(this.program, "shininess"),
-		lightPosition: gl.getUniformLocation(this.program, "lightPosition")
+
+		lights: []
+		//,numLights: gl.getUniformLocation(this.program, "numLights")
 	};
+
+	//init light shader variables
+	for(var i = 0; i < WORLD.numberOfLights; i++) {
+		var lightShaderVars = {};
+
+		lightShaderVars.position = gl.getUniformLocation(this.program, 'lightPosition[' + i + ']');
+		
+		lightShaderVars.ambient = gl.getUniformLocation(this.program, 'lights[' + i + '].ambient');
+		lightShaderVars.diffuse = gl.getUniformLocation(this.program, 'lights[' + i + '].diffuse');
+		lightShaderVars.specular = gl.getUniformLocation(this.program, 'lights[' + i + '].specular');
+
+		lightShaderVars.constantAttenuation = gl.getUniformLocation(this.program, 'lightAttenuation[' + i + '].constantAttenuation');
+		lightShaderVars.linearAttenuation = gl.getUniformLocation(this.program, 'lightAttenuation[' + i + '].linearAttenuation');
+		lightShaderVars.quadraticAttenuation = gl.getUniformLocation(this.program, 'lightAttenuation[' + i + '].quadraticAttenuation');
+
+		this.shaderVariables.lights.push(lightShaderVars);
+	}
 
 	this.draw = function() {
 		drawShape(this);
@@ -239,15 +274,24 @@ function drawShape(obj) {
 	//initialize shader variables
 	gl.useProgram(obj.program);
 
-	var ambientProduct = mult(lightAmbient, obj.material.ambientColor);
-    var diffuseProduct = mult(lightDiffuse, obj.material.diffuseColor);
-    var specularProduct = mult(lightSpecular, obj.material.specularColor);
-
-    gl.uniform4fv(obj.shaderVariables.ambientProduct, flatten(ambientProduct));
-    gl.uniform4fv(obj.shaderVariables.diffuseProduct, flatten(diffuseProduct));
-    gl.uniform4fv(obj.shaderVariables.specularProduct, flatten(specularProduct));
-    gl.uniform4fv(obj.shaderVariables.lightPosition, flatten(lightPosition));
+	gl.uniform4fv(obj.shaderVariables.matAmbientColor, flatten(obj.material.ambientColor));
+    gl.uniform4fv(obj.shaderVariables.matDiffuseColor, flatten(obj.material.diffuseColor));
+    gl.uniform4fv(obj.shaderVariables.matSpecularColor, flatten(obj.material.specularColor));
     gl.uniform1f(obj.shaderVariables.shininess, obj.material.shininess);
+
+    //gl.uniform1i(obj.shaderVariables.numLights, WORLD.numberOfLights);
+
+    for(var i = 0; i < WORLD.numberOfLights; i++) {
+    	gl.uniform4fv(obj.shaderVariables.lights[i].position, flatten(WORLD.lights[i].position));
+
+    	gl.uniform4fv(obj.shaderVariables.lights[i].ambient, flatten(WORLD.lights[i].ambient));
+    	gl.uniform4fv(obj.shaderVariables.lights[i].diffuse, flatten(WORLD.lights[i].diffuse));
+    	gl.uniform4fv(obj.shaderVariables.lights[i].specular, flatten(WORLD.lights[i].specular));
+
+    	gl.uniform1f(obj.shaderVariables.lights[i].constantAttenuation, WORLD.lights[i].constantAttenuation);
+    	gl.uniform1f(obj.shaderVariables.lights[i].linearAttenuation, WORLD.lights[i].linearAttenuation);
+    	gl.uniform1f(obj.shaderVariables.lights[i].quadraticAttenuation, WORLD.lights[i].quadraticAttenuation);
+    }
 
 	//set model view and projection matrix which are same for each object
 	gl.uniformMatrix4fv(obj.shaderVariables.modelView, false, flatten(modelView));
@@ -298,10 +342,10 @@ function clearCanvas() {
 	objectPool.forEach(function(o) {
 		gl.deleteBuffer(o.idxId);
 		gl.deleteBuffer(o.verId);
-		gl.deleteBuffer(o.colId);
+		gl.deleteBuffer(o.normalId);
 
 		o.verData = [];
-		o.colData = [];
+		o.normalData = [];
 		o.idxData = [];
 	});
 
