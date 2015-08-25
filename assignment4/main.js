@@ -17,7 +17,7 @@ var WORLD = {
 		quadraticAttenuation: 1.0
 	},
 	{
-		position: vec4(0.0, 1.0, 0.0, 0.0 ),
+		position: vec4(0.0, 1.0, 0.0, 1.0 ),
 		ambient: vec4(0.2, 0.2, 0.2, 1.0 ),
 		diffuse: vec4( 1.0, 1.0, 1.0, 1.0 ),
 		specular: vec4( 1.0, 1.0, 1.0, 1.0 ),
@@ -178,6 +178,38 @@ var objectType = OBJECT_TYPE.SPHERE;
 var wireframe = false;
 var shapeColor;
 
+function inverse(a) {
+    var a00 = a[0][0], a01 = a[0][1], a02 = a[0][2],
+        a10 = a[1][0], a11 = a[1][1], a12 = a[1][2],
+        a20 = a[2][0], a21 = a[2][1], a22 = a[2][2],
+
+        b01 = a22 * a11 - a12 * a21,
+        b11 = -a22 * a10 + a12 * a20,
+        b21 = a21 * a10 - a11 * a20,
+
+        // Calculate the determinant
+        det = a00 * b01 + a01 * b11 + a02 * b21,
+        out = mat3();
+
+    if (!det) { 
+        return null; 
+    }
+
+    det = 1.0 / det;
+
+    out[0][0] = b01 * det;
+    out[0][1] = (-a22 * a01 + a02 * a21) * det;
+    out[0][2] = (a12 * a01 - a02 * a11) * det;
+    out[1][0] = b11 * det;
+    out[1][1] = (a22 * a00 - a02 * a20) * det;
+    out[1][2] = (-a12 * a00 + a02 * a10) * det;
+    out[2][0] = b21 * det;
+    out[2][1] = (-a21 * a00 + a01 * a20) * det;
+    out[2][2] = (a11 * a00 - a01 * a10) * det;
+
+    return out;
+};
+
 //constructor to create an object
 //type property defines the object type
 function shape(type, shapeProp, translate, rotate, scale) {
@@ -218,6 +250,7 @@ function shape(type, shapeProp, translate, rotate, scale) {
 		vNormal: gl.getAttribLocation(this.program, "vNormal"),
 
 		modelView: gl.getUniformLocation(this.program, "modelView"),
+		normalMatrix: gl.getUniformLocation(this.program, "normalMatrix"),
 		projection: gl.getUniformLocation(this.program, "projection"),
 		
 		translate: gl.getUniformLocation(this.program, "translation"),
@@ -293,8 +326,40 @@ function drawShape(obj) {
     	gl.uniform1f(obj.shaderVariables.lights[i].quadraticAttenuation, WORLD.lights[i].quadraticAttenuation);
     }
 
-	//set model view and projection matrix which are same for each object
-	gl.uniformMatrix4fv(obj.shaderVariables.modelView, false, flatten(modelView));
+    var modelViewMat = mat4();
+    
+    //MV.js has problem with scale Fn
+    var scale = mat4();
+    scale[0][0] = obj.scale[0];
+    scale[1][1] = obj.scale[1];
+    scale[2][2] = obj.scale[2];
+
+    modelViewMat = mult(scale, modelViewMat);
+    modelViewMat = mult(rotateX(obj.rotate[0]), modelViewMat);
+    modelViewMat = mult(rotateY(obj.rotate[1]), modelViewMat);
+    modelViewMat = mult(rotateZ(obj.rotate[2]), modelViewMat);
+    modelViewMat = mult(translate(obj.translate[0], obj.translate[1], obj.translate[2]), modelViewMat);
+
+    modelViewMat = mult(modelView, modelViewMat);
+
+    var modelViewMat3x3 = mat3();
+
+    modelViewMat3x3[0][0] = modelViewMat[0][0];
+    modelViewMat3x3[0][1] = modelViewMat[0][1];
+    modelViewMat3x3[0][2] = modelViewMat[0][2];
+
+    modelViewMat3x3[1][0] = modelViewMat[1][0];
+    modelViewMat3x3[1][1] = modelViewMat[1][1];
+    modelViewMat3x3[1][2] = modelViewMat[1][2];
+
+    modelViewMat3x3[2][0] = modelViewMat[2][0];
+    modelViewMat3x3[2][1] = modelViewMat[2][1];
+    modelViewMat3x3[2][2] = modelViewMat[2][2];
+
+    var normalMatrix = transpose(inverse(modelViewMat3x3));
+
+	gl.uniformMatrix4fv(obj.shaderVariables.modelView, false, flatten(modelViewMat));
+	gl.uniformMatrix3fv(obj.shaderVariables.normalMatrix, false, flatten(normalMatrix));
 	gl.uniformMatrix4fv(obj.shaderVariables.projection, false, flatten(projection));
 
 	//bind buffer
@@ -321,9 +386,9 @@ function drawShape(obj) {
     gl.enableVertexAttribArray(obj.shaderVariables.vNormal);
 
     //send transformation vectors
-    gl.uniform3fv(obj.shaderVariables.translate, flatten(obj.translate));
+    /*gl.uniform3fv(obj.shaderVariables.translate, flatten(obj.translate));
     gl.uniform3fv(obj.shaderVariables.rotate, flatten(obj.rotate));
-    gl.uniform3fv(obj.shaderVariables.scale, flatten(obj.scale));
+    gl.uniform3fv(obj.shaderVariables.scale, flatten(obj.scale));*/
 
     //draw
     gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer.verId);
@@ -917,15 +982,13 @@ function render() {
 	
 	eye = vec3(radius*Math.sin(theta)*Math.cos(phi), 
         radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
-	/*eye = vec3(radius*Math.sin(theta)*Math.cos(phi), -radius*Math.cos(theta),
-        radius*Math.sin(theta)*Math.sin(phi));*/
 	
 	initViewProjection();
 
     //draw axis
-    axisCarpets.forEach(function(c) {
+    /*axisCarpets.forEach(function(c) {
     	c.draw();
-    });
+    });*/
 
 	objectPool.forEach(function(o) {
 		o.draw();
