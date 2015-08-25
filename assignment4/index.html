@@ -25,17 +25,18 @@
 		varying vec3 N, E;
 
 		uniform mat4 modelView;
+		uniform mat4 transformMat;
 		uniform mat4 projection;
 		uniform mat3 normalMatrix;
 
 		void main() {
-		    vec3 pos = (modelView * vPosition).xyz;
+		    vec3 pos = (modelView * transformMat * vPosition).xyz;
 
 		    E = -normalize(pos);
 		    
 		    for(int i = 0; i < numLights; i++) {
 		    	vec4 lightPosInCamera = modelView * lightPosition[i];
-		    	
+
 		    	if(lightPosition[i].w == 0.0) {
 			    	L[i] = normalize(lightPosInCamera.xyz);
 
@@ -53,7 +54,7 @@
 
     		N = normalize(normalMatrix * vNormal.xyz);
 
-		    gl_Position = projection * modelView * vPosition;
+		    gl_Position = projection * modelView * transformMat * vPosition;
 		}
 	</script>
 

@@ -13,8 +13,8 @@ var WORLD = {
 		specular: vec4( 1.0, 0.0, 1.0, 1.0 ),
 
 		constantAttenuation: 1.0,
-		linearAttenuation: 1.0,
-		quadraticAttenuation: 1.0
+		linearAttenuation: 0.0,
+		quadraticAttenuation: 0.0
 	},
 	{
 		position: vec4(0.0, 1.0, 0.0, 1.0 ),
@@ -99,7 +99,6 @@ var geoCache = {
 			vertices : [],
 			normals : [],
 			indices: [],
-			colors: [],
 			wireframeColors: []
 		},
 		cached: false
@@ -110,7 +109,6 @@ var geoCache = {
 			vertices : [],
 			normals : [],
 			indices: [],
-			colors: [],
 			wireframeColors: []
 		},
 		cached: false
@@ -121,7 +119,6 @@ var geoCache = {
 			vertices : [],
 			normals : [],
 			indices: [],
-			colors: [],
 			wireframeColors: []
 		},
 		cached: false
@@ -132,7 +129,6 @@ var geoCache = {
 			vertices : [],
 			normals : [],
 			indices: [],
-			colors: [],
 			wireframeColors: []
 		},
 		cached: false
@@ -229,7 +225,7 @@ function shape(type, shapeProp, translate, rotate, scale) {
 	this.type = type;
 
 	this.translate = translate || vec3(0.0, 0.0, 0.0);
-	this.rotate = (rotate) ? vec3(radians(rotate[0]), radians(rotate[1]), radians(rotate[2])) : vec3(0.0, 0.0, 0.0);
+	this.rotate = (rotate) ? vec3(rotate[0], rotate[1], rotate[2]) : vec3(0.0, 0.0, 0.0);
 	this.scale = scale || vec3(1.0, 1.0, 1.0);
 
 	//material properties
@@ -250,6 +246,7 @@ function shape(type, shapeProp, translate, rotate, scale) {
 		vNormal: gl.getAttribLocation(this.program, "vNormal"),
 
 		modelView: gl.getUniformLocation(this.program, "modelView"),
+		transformMat: gl.getUniformLocation(this.program, "transformMat"),
 		normalMatrix: gl.getUniformLocation(this.program, "normalMatrix"),
 		projection: gl.getUniformLocation(this.program, "projection"),
 		
@@ -326,7 +323,7 @@ function drawShape(obj) {
     	gl.uniform1f(obj.shaderVariables.lights[i].quadraticAttenuation, WORLD.lights[i].quadraticAttenuation);
     }
 
-    var modelViewMat = mat4();
+    var transformMat = mat4();
     
     //MV.js has problem with scale Fn
     var scale = mat4();
@@ -334,31 +331,31 @@ function drawShape(obj) {
     scale[1][1] = obj.scale[1];
     scale[2][2] = obj.scale[2];
 
-    modelViewMat = mult(scale, modelViewMat);
-    modelViewMat = mult(rotateX(obj.rotate[0]), modelViewMat);
-    modelViewMat = mult(rotateY(obj.rotate[1]), modelViewMat);
-    modelViewMat = mult(rotateZ(obj.rotate[2]), modelViewMat);
-    modelViewMat = mult(translate(obj.translate[0], obj.translate[1], obj.translate[2]), modelViewMat);
+    transformMat = mult(scale, transformMat);
+    transformMat = mult(rotateX(obj.rotate[0]), transformMat);
+    transformMat = mult(rotateY(obj.rotate[1]), transformMat);
+    transformMat = mult(rotateZ(obj.rotate[2]), transformMat);
+    transformMat = mult(translate(obj.translate[0], obj.translate[1], obj.translate[2]), transformMat);
 
-    modelViewMat = mult(modelView, modelViewMat);
+    var transformMat3x3 = mat3();
+    var viewTransformMat = mult(modelView, transformMat);
 
-    var modelViewMat3x3 = mat3();
+    transformMat3x3[0][0] = viewTransformMat[0][0];
+    transformMat3x3[0][1] = viewTransformMat[0][1];
+    transformMat3x3[0][2] = viewTransformMat[0][2];
 
-    modelViewMat3x3[0][0] = modelViewMat[0][0];
-    modelViewMat3x3[0][1] = modelViewMat[0][1];
-    modelViewMat3x3[0][2] = modelViewMat[0][2];
+    transformMat3x3[1][0] = viewTransformMat[1][0];
+    transformMat3x3[1][1] = viewTransformMat[1][1];
+    transformMat3x3[1][2] = viewTransformMat[1][2];
 
-    modelViewMat3x3[1][0] = modelViewMat[1][0];
-    modelViewMat3x3[1][1] = modelViewMat[1][1];
-    modelViewMat3x3[1][2] = modelViewMat[1][2];
+    transformMat3x3[2][0] = viewTransformMat[2][0];
+    transformMat3x3[2][1] = viewTransformMat[2][1];
+    transformMat3x3[2][2] = viewTransformMat[2][2];
 
-    modelViewMat3x3[2][0] = modelViewMat[2][0];
-    modelViewMat3x3[2][1] = modelViewMat[2][1];
-    modelViewMat3x3[2][2] = modelViewMat[2][2];
+    var normalMatrix = transpose(inverse(transformMat3x3));
 
-    var normalMatrix = transpose(inverse(modelViewMat3x3));
-
-	gl.uniformMatrix4fv(obj.shaderVariables.modelView, false, flatten(modelViewMat));
+	gl.uniformMatrix4fv(obj.shaderVariables.transformMat, false, flatten(transformMat));
+	gl.uniformMatrix4fv(obj.shaderVariables.modelView, false, flatten(modelView));
 	gl.uniformMatrix3fv(obj.shaderVariables.normalMatrix, false, flatten(normalMatrix));
 	gl.uniformMatrix4fv(obj.shaderVariables.projection, false, flatten(projection));
 
@@ -826,11 +823,7 @@ function resetController() {
 
 function updateObjectColorInCache(obj) {
 	if(obj.cached === true) {
-		obj.geometry.colors = [];
-
-		for(var i = 0, l = obj.geometry.vertices.length; i < l; i++) {
-			obj.geometry.colors.push(shapeColor);
-		}
+		obj.geometry.material.ambientColor = shapeColor;
 	}
 }
 
@@ -881,19 +874,19 @@ function initDOM() {
 	$('#btn-add-object').click(function(e) {
 		if(shapeColor !== undefined) {
 			if($('#select-object').val() === OBJECT_TYPE.SPHERE) {
- 				SPHERE_PROPERTY.color = shapeColor;
+ 				SPHERE_PROPERTY.material.ambientColor = shapeColor;
 
  				updateObjectColorInCache(geoCache.sphere);
  			} else if($('#select-object').val() === OBJECT_TYPE.CYLINDER) {
- 				CYLINDER_PROPERTY.color = shapeColor;
+ 				CYLINDER_PROPERTY.materialCylinder.ambientColor = shapeColor;
 
  				updateObjectColorInCache(geoCache.cylinder);
  			} else if($('#select-object').val() === OBJECT_TYPE.CONE) {
- 				CYLINDER_PROPERTY.coneColor = shapeColor;
+ 				CYLINDER_PROPERTY.materialCone.ambientColor = shapeColor;
 
  				updateObjectColorInCache(geoCache.cone);
  			} else if($('#select-object').val() === OBJECT_TYPE.FUNNEL) {
- 				CYLINDER_PROPERTY.funnelColor = shapeColor;
+ 				CYLINDER_PROPERTY.materialFunnel.ambientColor = shapeColor;
 
  				updateObjectColorInCache(geoCache.funnel);
  			}
@@ -955,9 +948,9 @@ function initDOM() {
         defaultPalette: 'web'
     });
 
-    //update paint color
+    //update material color
     $("#brush-color").on("change.color", function(e, color){
-        shapeColor = hexToRGB(color);
+        shapeColor = hexToRGB(color + '');
     });
 }
 
