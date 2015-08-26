@@ -97,8 +97,9 @@ span {
 }
 
 canvas {
-	margin-left: 30px;
+	margin-left: 5px;
 	border-radius: 10px;
+    position: fixed;
 }
 
 #controller-div {
@@ -106,9 +107,15 @@ canvas {
     border-radius: 10px;
     float: left;
     padding: 16px;
-    width: 30%;
-    margin-left: 120px;
-    height: 566px;
+    width: 27%;
+}
+
+#light-div {
+    border: 1px solid #50aacd;
+    border-radius: 10px;
+    float: right;
+    padding: 16px;
+    width: 16%;
 }
 
 input[type=range]{

@@ -51,7 +51,6 @@ var SPHERE_PROPERTY = {
 	phiStart: 0, 
 	phiEnd: 2 * Math.PI,
 
-	color: vec4(0.8, 0, 1, 1),
 	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
@@ -62,12 +61,8 @@ var CYLINDER_PROPERTY = {
 	thetaEnd: 2 * Math.PI,
 	top: true,
 	bottom: true,
-
-	color: vec4(0.0, 0.6, 1.0, 1.0),
-	coneColor: vec4(1.0, 0.6, 0.0, 1.0),
 	coneWireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
 	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
-	funnelColor: vec4(0, 0.8, 0.6, 1),
 	funnelWireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
@@ -242,7 +237,6 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 		matDiffuseColor: gl.getUniformLocation(this.program, "matDiffuseColor"),
 		matSpecularColor: gl.getUniformLocation(this.program, "matSpecularColor"),
 		shininess: gl.getUniformLocation(this.program, "shininess"),
-
 		lights: []
 		//,numLights: gl.getUniformLocation(this.program, "numLights")
 	};
@@ -1051,8 +1045,8 @@ function initLight() {
 	light1.specular = hexToRGB(light1DefaultSpecularColor);
 
 	light1.constantAttenuation = 1.0;
-	light1.linearAttenuation = 0.005;
-	light1.quadraticAttenuation = 0.001;
+	light1.linearAttenuation = 0.05;
+	light1.quadraticAttenuation = 0.01;
 
 	light1.enabled = 1;
 
@@ -1064,8 +1058,8 @@ function initLight() {
 	light2.specular = hexToRGB(light2DefaultSpecularColor);
 
 	light2.constantAttenuation = 1.0;
-	light2.linearAttenuation = 0.005;
-	light2.quadraticAttenuation = 0.001;
+	light2.linearAttenuation = 0.05;
+	light2.quadraticAttenuation = 0.01;
 
 	light2.enabled = 1;
 
