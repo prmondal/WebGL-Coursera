@@ -6,7 +6,8 @@ var WORLD = {
 	worldColor: vec4(0.26, 0.274, 0.32),
 
 	numberOfLights: 2,
-	lights: [{
+	lights: [
+	{
 		position: vec4(1.0, 0.0, 0.0, 0.0 ),
 		ambient: vec4(0.2, 0.2, 0.2, 1.0 ),
 		diffuse: vec4( 1.0, 1.0, 1.0, 1.0 ),
@@ -14,7 +15,9 @@ var WORLD = {
 
 		constantAttenuation: 1.0,
 		linearAttenuation: 0.0,
-		quadraticAttenuation: 0.0
+		quadraticAttenuation: 0.0,
+
+		enabled: 1
 	},
 	{
 		position: vec4(0.0, 1.0, 0.0, 1.0 ),
@@ -24,8 +27,11 @@ var WORLD = {
 
 		constantAttenuation: 1.0,
 		linearAttenuation: 0.0,
-		quadraticAttenuation: 0.0
-	}]
+		quadraticAttenuation: 0.0,
+
+		enabled: 1
+	}
+	]
 };
 
 var OBJECT_TYPE = {
@@ -268,6 +274,7 @@ function shape(type, shapeProp, translate, rotate, scale) {
 		lightShaderVars.ambient = gl.getUniformLocation(this.program, 'lights[' + i + '].ambient');
 		lightShaderVars.diffuse = gl.getUniformLocation(this.program, 'lights[' + i + '].diffuse');
 		lightShaderVars.specular = gl.getUniformLocation(this.program, 'lights[' + i + '].specular');
+		lightShaderVars.enabled = gl.getUniformLocation(this.program, 'lights[' + i + '].enabled');
 
 		lightShaderVars.constantAttenuation = gl.getUniformLocation(this.program, 'lightAttenuation[' + i + '].constantAttenuation');
 		lightShaderVars.linearAttenuation = gl.getUniformLocation(this.program, 'lightAttenuation[' + i + '].linearAttenuation');
@@ -313,6 +320,7 @@ function drawShape(obj) {
     	gl.uniform4fv(obj.shaderVariables.lights[i].ambient, flatten(WORLD.lights[i].ambient));
     	gl.uniform4fv(obj.shaderVariables.lights[i].diffuse, flatten(WORLD.lights[i].diffuse));
     	gl.uniform4fv(obj.shaderVariables.lights[i].specular, flatten(WORLD.lights[i].specular));
+    	gl.uniform1i(obj.shaderVariables.lights[i].enabled, WORLD.lights[i].enabled);
 
     	gl.uniform1f(obj.shaderVariables.lights[i].constantAttenuation, WORLD.lights[i].constantAttenuation);
     	gl.uniform1f(obj.shaderVariables.lights[i].linearAttenuation, WORLD.lights[i].linearAttenuation);
@@ -378,11 +386,6 @@ function drawShape(obj) {
     gl.vertexAttribPointer(obj.shaderVariables.vNormal, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(obj.shaderVariables.vNormal);
 
-    //send transformation vectors
-    /*gl.uniform3fv(obj.shaderVariables.translate, flatten(obj.translate));
-    gl.uniform3fv(obj.shaderVariables.rotate, flatten(obj.rotate));
-    gl.uniform3fv(obj.shaderVariables.scale, flatten(obj.scale));*/
-
     //draw
     gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer.verId);
 	gl.bufferData(gl.ARRAY_BUFFER, flatten(obj.buffer.verData), gl.STATIC_DRAW );
@@ -392,7 +395,7 @@ function drawShape(obj) {
 	if(wireframe === false) {
 		gl.drawElements(gl.TRIANGLES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
 	} else {
-		gl.drawElements(gl.LINE_STRIP, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
+		gl.drawElements(gl.LINES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
 	}
 }
 
@@ -824,7 +827,7 @@ function resetController() {
 
 function updateObjectColorInCache(obj) {
 	if(obj.cached === true) {
-		obj.geometry.material.ambientColor = shapeColor;
+		//obj.geometry.material.ambientColor = shapeColor;
 	}
 }
 
