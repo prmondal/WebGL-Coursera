@@ -6,32 +6,10 @@ var WORLD = {
 	worldColor: vec4(0.26, 0.274, 0.32),
 
 	numberOfLights: 2,
-	lights: [
-		/*{
-			position: vec4(1.0, 0.0, 0.0, 1.0 ),
-			ambient: vec4(0.2, 0.2, 0.2, 1.0 ),
-			diffuse: vec4( 1.0, 1.0, 1.0, 1.0 ),
-			specular: vec4( 1.0, 0.0, 1.0, 1.0 ),
+	lights: [],
+	animateLight: true,
 
-			constantAttenuation: 1.0,
-			linearAttenuation: 0.0,
-			quadraticAttenuation: 0.0,
-
-			enabled: 1
-		},
-		{
-			position: vec4(0.0, 1.0, 0.0, 1.0 ),
-			ambient: vec4(0.2, 0.2, 0.2, 1.0 ),
-			diffuse: vec4( 1.0, 1.0, 1.0, 1.0 ),
-			specular: vec4( 1.0, 1.0, 1.0, 1.0 ),
-
-			constantAttenuation: 1.0,
-			linearAttenuation: 0.0,
-			quadraticAttenuation: 0.0,
-
-			enabled: 1
-		}*/
-	]
+	timeScale: 0.02
 };
 
 var OBJECT_TYPE = {
@@ -150,19 +128,22 @@ var wireframe = false;
 var matDefaultAmbientColor = '#003300', 
 	matDefaultDiffuseColor = '#003300', 
 	matDefaultSpecularColor = '#ffff99', 
-	matDefaultShininess = 20;
+	matDefaultShininess = 15;
 
 var matAmbientColor = hexToRGB(matDefaultAmbientColor), 
 	matDiffuseColor = hexToRGB(matDefaultDiffuseColor),
 	matSpecularColor = hexToRGB(matDefaultSpecularColor),
 	matShininess = matDefaultShininess;
 
-var light1DefaultPosition = vec4(10.0, 0.0, 0.0, 1.0),
+var light1R = 10.0,
+	light2R = 10.0;
+
+var light1DefaultPosition = vec4(light1R, 0.0, 0.0, 1.0),
 	light1DefaultAmbientColor = '#ffffff', 
 	light1DefaultDiffuseColor = '#99ffcc', 
 	light1DefaultSpecularColor = '#ff9900',
 
-	light2DefaultPosition = vec4(0.0, 10.0, 0.0, 1.0),
+	light2DefaultPosition = vec4(0.0, light2R, 0.0, 1.0),
 	light2DefaultAmbientColor = '#ffffff', 
 	light2DefaultDiffuseColor = '#009933', 
 	light2DefaultSpecularColor = '#00ff00';
@@ -1034,6 +1015,14 @@ function initDOM() {
 	$('#chkbx-light2-enabled').click(function(e) {
 		WORLD.lights[1].enabled = 1 - WORLD.lights[1].enabled;
 	});
+
+	$('#chkbx-light-animation-enabled').click(function(e) {
+		WORLD.animateLight = !WORLD.animateLight;
+
+		if(WORLD.animateLight === true) {
+			
+		}
+	});
 }
 
 function initLight() {
@@ -1072,6 +1061,18 @@ function initAxisGeometry() {
 	axisCarpets.push(carpetXZ);
 }
 
+function animateLights() {
+	var x1 = light1R * Math.cos(radians(new Date().getTime() * WORLD.timeScale));
+	var y1 = light1R * Math.sin(radians(new Date().getTime() * WORLD.timeScale));
+
+	WORLD.lights[0].position = vec4(x1, y1, WORLD.lights[0].position[2], 1.0);
+
+	var y2 = light2R * Math.cos(radians(new Date().getTime() * WORLD.timeScale));
+	var z2 = light2R * Math.sin(radians(new Date().getTime() * WORLD.timeScale));
+
+	WORLD.lights[1].position = vec4(WORLD.lights[1].position[0], y2, z2, 1.0);
+}
+
 window.onload = function() {
 	initDOM();
 	initCanvas();
@@ -1090,6 +1091,10 @@ function render() {
         radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
 	
 	initViewProjection();
+
+	if(WORLD.animateLight === true) {
+		animateLights();
+	}
 
     //draw axis
     /*axisCarpets.forEach(function(c) {
