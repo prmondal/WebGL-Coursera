@@ -153,7 +153,7 @@ var objectType = OBJECT_TYPE.SPHERE;
 var wireframe = false;
 
 var matDefaultAmbientColor = '#003300', 
-	matDefaultDiffuseColor = '#339933', 
+	matDefaultDiffuseColor = '#003300', 
 	matDefaultSpecularColor = '#ffff99', 
 	matDefaultShininess = 20;
 
@@ -164,11 +164,11 @@ var matAmbientColor = hexToRGB(matDefaultAmbientColor),
 
 var light1DefaultPosition = vec4(10.0, 0.0, 0.0, 1.0),
 	light1DefaultAmbientColor = '#ffffff', 
-	light1DefaultDiffuseColor = '#00ffff', 
-	light1DefaultSpecularColor = '#ff00ff',
+	light1DefaultDiffuseColor = '#99ffcc', 
+	light1DefaultSpecularColor = '#ff9900',
 
 	light2DefaultPosition = vec4(0.0, 10.0, 0.0, 1.0),
-	light2DefaultAmbientColor = '#66ffff', 
+	light2DefaultAmbientColor = '#ffffff', 
 	light2DefaultDiffuseColor = '#009933', 
 	light2DefaultSpecularColor = '#00ff00';
 
@@ -513,9 +513,9 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 
 			//fix normals for cone TODO
 			if(y == 0 && top === true && topRadius > 0) {
-				normals.push(vec4(0.5 * vx, 0.5, 0.5 * vz, 0.0));
+				normals.push(normalize(vec4(0.5 * vx, 0.5, 0.5 * vz, 0.0)));
 			} else if(y == heightSegment) {
-				normals.push(vec4(0.5 * vx, -0.5, 0.5 * vz, 0.0));
+				normals.push(normalize(vec4(0.5 * vx, -0.5, 0.5 * vz, 0.0)));
 			} else {
 				normals.push(normalize(vec4(vx, 0, vz, 0.0)));
 			}
@@ -752,7 +752,7 @@ function createShape(type, material, translate, rotate, scale) {
 			break;
 
 		case OBJECT_TYPE.FUNNEL:
-			obj = new cylinder(material, translate, rotate, scale, 0.5, 1.0, 1, false, false);
+			obj = new cylinder(material, translate, rotate, scale, 0.25, 0.5, 1, false, false);
 			break;
 	}
 
