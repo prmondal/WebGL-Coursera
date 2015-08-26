@@ -57,8 +57,8 @@ var SPHERE_PROPERTY = {
 };
 
 var CYLINDER_PROPERTY = {
-	radialSegment: 16,
-	heightSegment: 1,
+	radialSegment: 32,
+	heightSegment: 32,
 	thetaStart: 0,
 	thetaEnd: 2 * Math.PI,
 	top: true,
@@ -159,7 +159,7 @@ var left = -5.0,
 var radius = 8.0;
 var theta  = 45;
 var phi    = 51.04;
-var dr = 5.0 * Math.PI/180.0;
+var dr = 5.0 * Math.PI / 180.0;
 
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
@@ -249,10 +249,6 @@ function shape(type, shapeProp, translate, rotate, scale) {
 		transformMat: gl.getUniformLocation(this.program, "transformMat"),
 		normalMatrix: gl.getUniformLocation(this.program, "normalMatrix"),
 		projection: gl.getUniformLocation(this.program, "projection"),
-		
-		translate: gl.getUniformLocation(this.program, "translation"),
-		rotate: gl.getUniformLocation(this.program, "rotation"),
-		scale: gl.getUniformLocation(this.program, "scale"),
 
 		matAmbientColor: gl.getUniformLocation(this.program, "matAmbientColor"),
 		matDiffuseColor: gl.getUniformLocation(this.program, "matDiffuseColor"),
@@ -423,7 +419,6 @@ function createSphereGeometry(radius, sphereProp) {
 	var vertices = [],
 		normals = [],
 		indices = [],
-		colors = [],
 		wireframeColors = [];
 	
 	var thetaStart = sphereProp.thetaStart || 0, 
@@ -452,7 +447,6 @@ function createSphereGeometry(radius, sphereProp) {
 
 			vertices.push(vec3(radius * x, radius * y, radius * z));
 			normals.push(vec4(x, y, z, 0.0));
-			colors.push(sphereProp.color);
 			wireframeColors.push(sphereProp.wireframeColor);
 		}
 	}
@@ -482,7 +476,6 @@ function createSphereGeometry(radius, sphereProp) {
 		vertices : vertices,
 		normals: normals,
 		indices: indices,
-		colors: colors,
 		wireframeColors: wireframeColors
 	};
 
@@ -509,11 +502,11 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 
 	var vertices = [],
 		indices = [],
-		colors = [],
+		normals = [],
 		wireframeColors = [];
 
 	var radialSegment = cylinderProp.radialSegment || 16,
-		heightSegment = (top === true) ? cylinderProp.heightSegment || 1 : 1,
+		heightSegment = cylinderProp.heightSegment || 1,
 		thetaStart = cylinderProp.thetaStart || 0,
 		thetaEnd = cylinderProp.thetaEnd || 2 * Math.PI,
 		thetaRange = thetaEnd - thetaStart;
@@ -532,7 +525,15 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 				vz = effectiveRadius * sinTheta;
 
 			vertices.push(vec3(vx, vy, vz));
-			colors.push((top === false && bottom === false) ? cylinderProp.funnelColor : ((top === false) ? cylinderProp.coneColor : cylinderProp.color));
+
+			if(y == 0 && top === true && topRadius > 0) {
+				normals.push(vec4(0.5 * vx, 0.5, 0.5 * vz, 0.0));
+			} else if(y == heightSegment) {
+				normals.push(vec4(0.5 * vx, -0.5, 0.5 * vz, 0.0));
+			} else {
+				normals.push(normalize(vec4(vx, 0, vz, 0.0)));
+			}
+
 			wireframeColors.push((top === false && bottom === false) ? cylinderProp.coneWireframeColor : ((top === false) ? cylinderProp.funnelWireframeColor : cylinderProp.wireframeColor));
 		}
 	}
@@ -541,7 +542,7 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 	if(top === true && topRadius > 0) {
 		//push center
 		vertices.push(vec3(0, height / 2, 0));
-		colors.push(cylinderProp.color);
+		normals.push(vec4(0.0, 1.0, 0.0, 0.0));
 		wireframeColors.push(cylinderProp.wireframeColor);
 
 		for(var x = 0; x < radialSegment; x++) {
@@ -576,7 +577,7 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 	if(bottom === true && bottomRadius > 0) {
 		//push center
 		vertices.push(vec3(0, -height / 2, 0));
-		colors.push((top === false) ? cylinderProp.coneColor : cylinderProp.color);
+		normals.push(vec4(0.0, -1.0, 0.0, 0.0));
 		wireframeColors.push((top === false) ? cylinderProp.coneWireframeColor : cylinderProp.wireframeColor);
 
 		for(var x = 0; x < radialSegment; x++) {
@@ -593,7 +594,7 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 	var g = {
 		vertices : vertices,
 		indices: indices,
-		colors: colors,
+		normals: normals,
 		wireframeColors: wireframeColors
 	};
 
