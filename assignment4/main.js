@@ -1127,6 +1127,10 @@ window.onload = function() {
 	render();
 }
 
+var frameCount = 0,
+	lastTime = 0,
+	elapsedTime = 0;
+
 function render() {
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.clearColor(WORLD.worldColor[0], WORLD.worldColor[1], WORLD.worldColor[2], WORLD.worldColor[3]);
@@ -1152,4 +1156,16 @@ function render() {
 	});
 
 	window.requestAnimFrame(render);
+
+	var now = new Date().getTime();
+	elapsedTime += (now - lastTime);
+
+	lastTime = now;
+	frameCount++;
+
+	if(elapsedTime >= 1000) {
+		$('#fps').html('FPS: ' + frameCount);
+		frameCount = 0;
+		elapsedTime = 0;
+	}
 }
