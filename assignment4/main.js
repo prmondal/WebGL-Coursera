@@ -7,7 +7,8 @@ var WORLD = {
 
 	numberOfLights: 2,
 	lights: [],
-	animateLight: true,
+	animateLight: false,
+	lightMoveDelta: 0.0,
 
 	timeScale: 0.02
 };
@@ -996,6 +997,30 @@ function initDOM() {
 		WORLD.lights[0].position[2] = parseFloat($(this).val());
 	});
 
+	$('#light1-constant-attn').change(function(e) {
+		WORLD.lights[0].constantAttenuation = parseFloat($(this).val());
+	});
+
+	$('#light1-linear-attn').change(function(e) {
+		WORLD.lights[0].linearAttenuation = parseFloat($(this).val());
+	});
+
+	$('#light1-quadratic-attn').change(function(e) {
+		WORLD.lights[0].quadraticAttenuation = parseFloat($(this).val());
+	});
+
+	$('#light2-constant-attn').change(function(e) {
+		WORLD.lights[1].constantAttenuation = parseFloat($(this).val());
+	});
+
+	$('#light2-linear-attn').change(function(e) {
+		WORLD.lights[1].linearAttenuation = parseFloat($(this).val());
+	});
+
+	$('#light2-quadratic-attn').change(function(e) {
+		WORLD.lights[1].quadraticAttenuation = parseFloat($(this).val());
+	});
+
 	$('#light2-posx-slider').change(function(e) {
 		WORLD.lights[1].position[0] = parseFloat($(this).val());
 	});
@@ -1020,7 +1045,15 @@ function initDOM() {
 		WORLD.animateLight = !WORLD.animateLight;
 
 		if(WORLD.animateLight === true) {
-			
+			$('#light1-position').hide();
+			$('#light2-position').hide();
+		} else {
+			$('#light1-position').show();
+			$('#light2-position').show();
+
+			WORLD.lightMoveDelta = 0.0;
+			WORLD.lights[0].position = light1DefaultPosition;
+			WORLD.lights[1].position = light2DefaultPosition;
 		}
 	});
 }
@@ -1034,8 +1067,8 @@ function initLight() {
 	light1.specular = hexToRGB(light1DefaultSpecularColor);
 
 	light1.constantAttenuation = 1.0;
-	light1.linearAttenuation = 0.05;
-	light1.quadraticAttenuation = 0.01;
+	light1.linearAttenuation = 0.0;
+	light1.quadraticAttenuation = 0.0;
 
 	light1.enabled = 1;
 
@@ -1047,8 +1080,8 @@ function initLight() {
 	light2.specular = hexToRGB(light2DefaultSpecularColor);
 
 	light2.constantAttenuation = 1.0;
-	light2.linearAttenuation = 0.05;
-	light2.quadraticAttenuation = 0.01;
+	light2.linearAttenuation = 0.0;
+	light2.quadraticAttenuation = 0.0;
 
 	light2.enabled = 1;
 
@@ -1062,13 +1095,24 @@ function initAxisGeometry() {
 }
 
 function animateLights() {
-	var x1 = light1R * Math.cos(radians(new Date().getTime() * WORLD.timeScale));
+	/*var x1 = light1R * Math.cos(radians(new Date().getTime() * WORLD.timeScale));
 	var y1 = light1R * Math.sin(radians(new Date().getTime() * WORLD.timeScale));
 
 	WORLD.lights[0].position = vec4(x1, y1, WORLD.lights[0].position[2], 1.0);
 
 	var y2 = light2R * Math.cos(radians(new Date().getTime() * WORLD.timeScale));
 	var z2 = light2R * Math.sin(radians(new Date().getTime() * WORLD.timeScale));
+
+	WORLD.lights[1].position = vec4(WORLD.lights[1].position[0], y2, z2, 1.0);*/
+	
+
+	var x1 = light1R * Math.cos(radians(WORLD.lightMoveDelta));
+	var y1 = light1R * Math.sin(radians(WORLD.lightMoveDelta));
+
+	WORLD.lights[0].position = vec4(x1, y1, WORLD.lights[0].position[2], 1.0);
+
+	var y2 = light2R * Math.cos(radians(WORLD.lightMoveDelta));
+	var z2 = light2R * Math.sin(radians(WORLD.lightMoveDelta));
 
 	WORLD.lights[1].position = vec4(WORLD.lights[1].position[0], y2, z2, 1.0);
 }
@@ -1093,6 +1137,8 @@ function render() {
 	initViewProjection();
 
 	if(WORLD.animateLight === true) {
+		WORLD.lightMoveDelta += 0.5;
+
 		animateLights();
 	}
 

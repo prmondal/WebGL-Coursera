@@ -163,7 +163,7 @@
 						Specular: <input style="width:100px;" id="shape-specular-color"/>
 					</div>
 					<div class="shape-material-shininess-slider">
-						<span>Shininess</span> <div>1 <input id="shininess-slider" type="range" min="1" max="100" step="1" value="20" /> 100 </div>
+						<span>Shininess</span> <div>15 <input id="shininess-slider" type="range" min="15" max="100" step="1" value="10" /> 100 </div>
 					</div>
 				</div>
 
@@ -236,13 +236,19 @@
 					<div id="light-properties">
 						<span style="color:rgb(132, 0, 255)">Enabled </span><input id="chkbx-light1-enabled" type="checkbox" checked>
 
-						<span>X</span> <div>-15 <input id="light1-posx-slider" type="range" min="-15" max="15" step="1" value="10" /> 15 </div>
-						<span>Y</span> <div>-15 <input  id="light1-posy-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
-						<span>Z</span> <div>-15 <input id="light1-posz-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+						<div id="light1-position">
+							<span>X</span> <div>-15 <input id="light1-posx-slider" type="range" min="-15" max="15" step="1" value="10" /> 15 </div>
+							<span>Y</span> <div>-15 <input  id="light1-posy-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							<span>Z</span> <div>-15 <input id="light1-posz-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+						</div>
 
 						Ambient: <input style="width:100px;" id="light1-ambient-color"/>
 						Diffuse: <input style="width:100px;" id="light1-diffuse-color"/>
 						Specular: <input style="width:100px;" id="light1-specular-color"/>
+
+						Constant: <input type="number" min="1.0" max="4.0" step="0.1" value="1.0" id="light1-constant-attn">
+						Linear: <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light1-linear-attn">
+						Quadratic: <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light1-quadratic-attn">
 					</div>
 				</fieldset>
 
@@ -251,15 +257,23 @@
 					<div id="light-properties">
 						<span style="color:rgb(132, 0, 255)">Enabled </span><input id="chkbx-light2-enabled" type="checkbox" checked>
 
-						<span>X</span> <div>-15 <input id="light2-posx-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
-						<span>Y</span> <div>-15 <input  id="light2-posy-slider" type="range" min="-15" max="15" step="1" value="10" /> 15 </div>
-						<span>Z</span> <div>-15 <input id="light2-posz-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+						<div id="light2-position">
+							<span>X</span> <div>-15 <input id="light2-posx-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							<span>Y</span> <div>-15 <input  id="light2-posy-slider" type="range" min="-15" max="15" step="1" value="10" /> 15 </div>
+							<span>Z</span> <div>-15 <input id="light2-posz-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+						</div>
 
 						Ambient: <input style="width:100px;" id="light2-ambient-color"/>
 						Diffuse: <input style="width:100px;" id="light2-diffuse-color"/>
 						Specular: <input style="width:100px;" id="light2-specular-color"/>
+
+						Constant: <input type="number" min="1.0" max="4.0" step="0.1" value="1.0" id="light2-constant-attn">
+						Linear: <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light2-linear-attn">
+						Quadratic: <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light2-quadratic-attn">
 					</div>
 				</fieldset>
+
+				<span style="color:rgb(132, 0, 255)">Animate Lights </span><input id="chkbx-light-animation-enabled" type="checkbox" unchecked>
 			</div>
 		</div>
 </body>
