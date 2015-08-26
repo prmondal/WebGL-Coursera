@@ -156,9 +156,15 @@
 					</select>
 				</div>
 				
-				<div id="color-txt">Color</div>
-				<div id="brush-color-div">
-					<input style="width:100px;" id="brush-color"/>
+				<div id="shape-material-div">
+					<div id="shape-material-color">
+						Ambient: <input style="width:100px;" id="shape-ambient-color"/>
+						Diffuse: <input style="width:100px;" id="shape-diffuse-color"/>
+						Specular: <input style="width:100px;" id="shape-specular-color"/>
+					</div>
+					<div class="shape-material-shininess-slider">
+						<span>Shininess</span> <div>1 <input id="shininess-slider" type="range" min="1" max="100" step="1" value="20" /> 100 </div>
+					</div>
 				</div>
 
 				<div id="checkbox-div">
@@ -223,6 +229,38 @@
 			<canvas id="gl-canvas" width="700" height="600">
 				Oops ... your browser doesn't support the HTML5 canvas element
 			</canvas>
+
+			<div id="light-div">
+				<fieldset>
+					<legend>Light 1</legend>
+					<div id="light-properties">
+						<span style="color:rgb(132, 0, 255)">Enabled </span><input id="chkbx-light1-enabled" type="checkbox" checked>
+
+						<span>X</span> <div>-15 <input id="light1-posx-slider" type="range" min="-15" max="15" step="1" value="10" /> 15 </div>
+						<span>Y</span> <div>-15 <input  id="light1-posy-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+						<span>Z</span> <div>-15 <input id="light1-posz-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+
+						Ambient: <input style="width:100px;" id="light1-ambient-color"/>
+						Diffuse: <input style="width:100px;" id="light1-diffuse-color"/>
+						Specular: <input style="width:100px;" id="light1-specular-color"/>
+					</div>
+				</fieldset>
+
+				<fieldset>
+					<legend>Light 2</legend>
+					<div id="light-properties">
+						<span style="color:rgb(132, 0, 255)">Enabled </span><input id="chkbx-light2-enabled" type="checkbox" checked>
+
+						<span>X</span> <div>-15 <input id="light2-posx-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+						<span>Y</span> <div>-15 <input  id="light2-posy-slider" type="range" min="-15" max="15" step="1" value="10" /> 15 </div>
+						<span>Z</span> <div>-15 <input id="light2-posz-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+
+						Ambient: <input style="width:100px;" id="light2-ambient-color"/>
+						Diffuse: <input style="width:100px;" id="light2-diffuse-color"/>
+						Specular: <input style="width:100px;" id="light2-specular-color"/>
+					</div>
+				</fieldset>
+			</div>
 		</div>
 </body>
 </html>

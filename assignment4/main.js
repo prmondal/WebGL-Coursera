@@ -7,30 +7,30 @@ var WORLD = {
 
 	numberOfLights: 2,
 	lights: [
-	{
-		position: vec4(1.0, 0.0, 0.0, 0.0 ),
-		ambient: vec4(0.2, 0.2, 0.2, 1.0 ),
-		diffuse: vec4( 1.0, 1.0, 1.0, 1.0 ),
-		specular: vec4( 1.0, 0.0, 1.0, 1.0 ),
+		/*{
+			position: vec4(1.0, 0.0, 0.0, 1.0 ),
+			ambient: vec4(0.2, 0.2, 0.2, 1.0 ),
+			diffuse: vec4( 1.0, 1.0, 1.0, 1.0 ),
+			specular: vec4( 1.0, 0.0, 1.0, 1.0 ),
 
-		constantAttenuation: 1.0,
-		linearAttenuation: 0.0,
-		quadraticAttenuation: 0.0,
+			constantAttenuation: 1.0,
+			linearAttenuation: 0.0,
+			quadraticAttenuation: 0.0,
 
-		enabled: 1
-	},
-	{
-		position: vec4(0.0, 1.0, 0.0, 1.0 ),
-		ambient: vec4(0.2, 0.2, 0.2, 1.0 ),
-		diffuse: vec4( 1.0, 1.0, 1.0, 1.0 ),
-		specular: vec4( 1.0, 1.0, 1.0, 1.0 ),
+			enabled: 1
+		},
+		{
+			position: vec4(0.0, 1.0, 0.0, 1.0 ),
+			ambient: vec4(0.2, 0.2, 0.2, 1.0 ),
+			diffuse: vec4( 1.0, 1.0, 1.0, 1.0 ),
+			specular: vec4( 1.0, 1.0, 1.0, 1.0 ),
 
-		constantAttenuation: 1.0,
-		linearAttenuation: 0.0,
-		quadraticAttenuation: 0.0,
+			constantAttenuation: 1.0,
+			linearAttenuation: 0.0,
+			quadraticAttenuation: 0.0,
 
-		enabled: 1
-	}
+			enabled: 1
+		}*/
 	]
 };
 
@@ -52,14 +52,7 @@ var SPHERE_PROPERTY = {
 	phiEnd: 2 * Math.PI,
 
 	color: vec4(0.8, 0, 1, 1),
-	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
-
-	material: {
-		ambientColor: vec4(1.0, 1.0, 0.8, 1.0),
-		diffuseColor: vec4(0.0, 0.0, 1.0, 1.0),
-		specularColor: vec4(1.0, 1.0, 1.0, 1.0),
-		shininess: 20.0
-	}
+	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
 var CYLINDER_PROPERTY = {
@@ -75,28 +68,7 @@ var CYLINDER_PROPERTY = {
 	coneWireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
 	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
 	funnelColor: vec4(0, 0.8, 0.6, 1),
-	funnelWireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
-
-	materialCylinder: {
-		ambientColor: vec4(1.0, 1.0, 0.8, 1.0),
-		diffuseColor: vec4(0.0, 0.0, 1.0, 1.0),
-		specularColor: vec4(1.0, 1.0, 1.0, 1.0),
-		shininess: 20.0
-	},
-
-	materialCone: {
-		ambientColor: vec4(1.0, 1.0, 0.8, 1.0),
-		diffuseColor: vec4(0.0, 0.0, 1.0, 1.0),
-		specularColor: vec4(1.0, 1.0, 1.0, 1.0),
-		shininess: 20.0
-	},
-
-	materialFunnel: {
-		ambientColor: vec4(1.0, 1.0, 0.8, 1.0),
-		diffuseColor: vec4(0.0, 0.0, 1.0, 1.0),
-		specularColor: vec4(1.0, 1.0, 1.0, 1.0),
-		shininess: 20.0
-	}
+	funnelWireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
 var geoCache = {
@@ -177,8 +149,28 @@ var tX = 0.0, tY = 0.0, tZ = 0.0,
 	rX = 0.0, rY = 0.0, rZ = 0.0;
 
 var objectType = OBJECT_TYPE.SPHERE;
+
 var wireframe = false;
-var shapeColor;
+
+var matDefaultAmbientColor = '#003300', 
+	matDefaultDiffuseColor = '#339933', 
+	matDefaultSpecularColor = '#ffff99', 
+	matDefaultShininess = 20;
+
+var matAmbientColor = hexToRGB(matDefaultAmbientColor), 
+	matDiffuseColor = hexToRGB(matDefaultDiffuseColor),
+	matSpecularColor = hexToRGB(matDefaultSpecularColor),
+	matShininess = matDefaultShininess;
+
+var light1DefaultPosition = vec4(10.0, 0.0, 0.0, 1.0),
+	light1DefaultAmbientColor = '#ffffff', 
+	light1DefaultDiffuseColor = '#00ffff', 
+	light1DefaultSpecularColor = '#ff00ff',
+
+	light2DefaultPosition = vec4(0.0, 10.0, 0.0, 1.0),
+	light2DefaultAmbientColor = '#66ffff', 
+	light2DefaultDiffuseColor = '#009933', 
+	light2DefaultSpecularColor = '#00ff00';
 
 function inverse(a) {
     var a00 = a[0][0], a01 = a[0][1], a02 = a[0][2],
@@ -214,7 +206,7 @@ function inverse(a) {
 
 //constructor to create an object
 //type property defines the object type
-function shape(type, shapeProp, translate, rotate, scale) {
+function shape(type, shapeProp, material, translate, rotate, scale) {
 	this.buffer = {
 		verId: gl.createBuffer(),
 		verData: shapeProp.vertices,
@@ -229,21 +221,11 @@ function shape(type, shapeProp, translate, rotate, scale) {
 	};
 
 	this.type = type;
+	this.material = material;
 
 	this.translate = translate || vec3(0.0, 0.0, 0.0);
 	this.rotate = (rotate) ? vec3(rotate[0], rotate[1], rotate[2]) : vec3(0.0, 0.0, 0.0);
 	this.scale = scale || vec3(1.0, 1.0, 1.0);
-
-	//material properties
-	if(type === OBJECT_TYPE.SPHERE) {
-		this.material = SPHERE_PROPERTY.material;
-	} else if(type === OBJECT_TYPE.CONE) {
-		this.material = CYLINDER_PROPERTY.materialCone;
-	} else if(type === OBJECT_TYPE.CYLINDER) {
-		this.material = CYLINDER_PROPERTY.materialCylinder;
-	} else if(type === OBJECT_TYPE.FUNNEL) {
-		this.material = CYLINDER_PROPERTY.materialFunnel;
-	}
 
 	this.program = initShaders(gl, "vertex-shader", "fragment-shader");
 	
@@ -529,6 +511,7 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 
 			vertices.push(vec3(vx, vy, vz));
 
+			//fix normals for cone TODO
 			if(y == 0 && top === true && topRadius > 0) {
 				normals.push(vec4(0.5 * vx, 0.5, 0.5 * vz, 0.0));
 			} else if(y == heightSegment) {
@@ -713,15 +696,15 @@ function createAxisLinesGeometry() {
 	}
 }
 
-function sphere(translate, rotate, scale, radius) {
+function sphere(material, translate, rotate, scale, radius) {
 	this.radius = radius || 1;
 
 	var sphereGeometry = createSphereGeometry(this.radius, SPHERE_PROPERTY);
 
-	shape.apply(this, [OBJECT_TYPE.SPHERE, sphereGeometry, translate, rotate, scale]);
+	shape.apply(this, [OBJECT_TYPE.SPHERE, sphereGeometry, material, translate, rotate, scale]);
 }
 
-function cylinder(translate, rotate, scale, topRadius, bottomRadius, height, top, bottom) {
+function cylinder(material, translate, rotate, scale, topRadius, bottomRadius, height, top, bottom) {
 	this.topRadius = topRadius || 1;
 	this.bottomRadius = bottomRadius || 1;
 	this.height = height || 1;
@@ -730,10 +713,10 @@ function cylinder(translate, rotate, scale, topRadius, bottomRadius, height, top
 
 	var cylinderGeometry = createCylinderGeometry(this.topRadius, this.bottomRadius, this.height, CYLINDER_PROPERTY, top, bottom);
 
-	shape.apply(this, [OBJECT_TYPE.CYLINDER, cylinderGeometry, translate, rotate, scale]);
+	shape.apply(this, [OBJECT_TYPE.CYLINDER, cylinderGeometry, material, translate, rotate, scale]);
 }
 
-function funnel(translate, rotate, scale, topRadius, bottomRadius, height, top, bottom) {
+function funnel(material, translate, rotate, scale, topRadius, bottomRadius, height, top, bottom) {
 	this.topRadius = topRadius || 1;
 	this.bottomRadius = bottomRadius || 1;
 	this.height = height || 1;
@@ -742,7 +725,7 @@ function funnel(translate, rotate, scale, topRadius, bottomRadius, height, top, 
 
 	var cylinderGeometry = createCylinderGeometry(this.topRadius, this.bottomRadius, this.height, CYLINDER_PROPERTY, top, bottom);
 
-	shape.apply(this, [OBJECT_TYPE.CYLINDER, cylinderGeometry, translate, rotate, scale]);
+	shape.apply(this, [OBJECT_TYPE.CYLINDER, cylinderGeometry, material, translate, rotate, scale]);
 }
 
 function axisCarpet() {
@@ -752,24 +735,24 @@ function axisCarpet() {
 }
 
 //utility method to create shape and push it to the object pool
-function createShape(type, translate, rotate, scale) {
+function createShape(type, material, translate, rotate, scale) {
 	var obj;
 
 	switch(type) {
 		case OBJECT_TYPE.SPHERE:
-			obj = new sphere(translate, rotate, scale, 0.5);
+			obj = new sphere(material, translate, rotate, scale, 0.5);
 			break;
 
 		case OBJECT_TYPE.CYLINDER:
-			obj = new cylinder(translate, rotate, scale, 0.5, 0.5, 1, true, true);
+			obj = new cylinder(material, translate, rotate, scale, 0.5, 0.5, 1, true, true);
 			break;
 
 		case OBJECT_TYPE.CONE:
-			obj = new cylinder(translate, rotate, scale, 0.00001, 0.5, 1, false, true);
+			obj = new cylinder(material, translate, rotate, scale, 0.00001, 0.5, 1, false, true);
 			break;
 
 		case OBJECT_TYPE.FUNNEL:
-			obj = new cylinder(translate, rotate, scale, 0.5, 1.0, 1, false, false);
+			obj = new cylinder(material, translate, rotate, scale, 0.5, 1.0, 1, false, false);
 			break;
 	}
 
@@ -876,27 +859,14 @@ function initDOM() {
 
 	//button input
 	$('#btn-add-object').click(function(e) {
-		if(shapeColor !== undefined) {
-			if($('#select-object').val() === OBJECT_TYPE.SPHERE) {
- 				SPHERE_PROPERTY.material.ambientColor = shapeColor;
-
- 				updateObjectColorInCache(geoCache.sphere);
- 			} else if($('#select-object').val() === OBJECT_TYPE.CYLINDER) {
- 				CYLINDER_PROPERTY.materialCylinder.ambientColor = shapeColor;
-
- 				updateObjectColorInCache(geoCache.cylinder);
- 			} else if($('#select-object').val() === OBJECT_TYPE.CONE) {
- 				CYLINDER_PROPERTY.materialCone.ambientColor = shapeColor;
-
- 				updateObjectColorInCache(geoCache.cone);
- 			} else if($('#select-object').val() === OBJECT_TYPE.FUNNEL) {
- 				CYLINDER_PROPERTY.materialFunnel.ambientColor = shapeColor;
-
- 				updateObjectColorInCache(geoCache.funnel);
- 			}
-		}
-
-		createShape(objectType, vec3(tX, tY, tZ), vec3(rX, rY, rZ), vec3(sX, sY, sZ));
+		var material = {
+			ambientColor: matAmbientColor,
+			diffuseColor: matDiffuseColor,
+			specularColor: matSpecularColor,
+			shininess: matShininess
+		};
+		
+		createShape(objectType, material, vec3(tX, tY, tZ), vec3(rX, rY, rZ), vec3(sX, sY, sZ));
 	});
 
 	$('#btn-clear-canvas').click(function(e) {
@@ -947,15 +917,159 @@ function initDOM() {
 		wireframe = !wireframe;
 	});
 
-	$("#brush-color").colorpicker({
-        color: '#cc33ff',
+	/*
+		Material properties
+	*/
+	$("#shape-ambient-color").colorpicker({
+        color: matDefaultAmbientColor,
         defaultPalette: 'web'
     });
 
-    //update material color
-    $("#brush-color").on("change.color", function(e, color){
-        shapeColor = hexToRGB(color + '');
+    $("#shape-diffuse-color").colorpicker({
+        color: matDefaultDiffuseColor,
+        defaultPalette: 'web'
     });
+
+    $("#shape-specular-color").colorpicker({
+        color: matDefaultSpecularColor,
+        defaultPalette: 'web'
+    });
+
+    //update material properties
+    $("#shape-ambient-color").on("change.color", function(e, color){
+        matAmbientColor = hexToRGB(color + '');
+    });
+
+    $("#shape-diffuse-color").on("change.color", function(e, color){
+        matDiffuseColor = hexToRGB(color + '');
+    });
+
+    $("#shape-specular-color").on("change.color", function(e, color){
+        matSpecularColor = hexToRGB(color + '');
+    });
+
+    $('#shininess-slider').change(function(e) {
+		matShininess = parseFloat($(this).val());
+	});
+
+	/*
+		Light properties
+	*/
+	$("#light1-ambient-color").colorpicker({
+        color: light1DefaultAmbientColor,
+        defaultPalette: 'web'
+    });
+
+    $("#light1-diffuse-color").colorpicker({
+        color: light1DefaultDiffuseColor,
+        defaultPalette: 'web'
+    });
+
+    $("#light1-specular-color").colorpicker({
+        color: light1DefaultSpecularColor,
+        defaultPalette: 'web'
+    });
+
+    $("#light2-ambient-color").colorpicker({
+        color: light2DefaultAmbientColor,
+        defaultPalette: 'web'
+    });
+
+    $("#light2-diffuse-color").colorpicker({
+        color: light2DefaultDiffuseColor,
+        defaultPalette: 'web'
+    });
+
+    $("#light2-specular-color").colorpicker({
+        color: light2DefaultSpecularColor,
+        defaultPalette: 'web'
+    });
+
+    $("#light1-ambient-color").on("change.color", function(e, color){
+        WORLD.lights[0].ambient = hexToRGB(color + '');
+    });
+
+    $("#light1-diffuse-color").on("change.color", function(e, color){
+        WORLD.lights[0].diffuse = hexToRGB(color + '');
+    });
+
+    $("#light1-specular-color").on("change.color", function(e, color){
+        WORLD.lights[0].specular = hexToRGB(color + '');
+    });
+
+    $("#light2-ambient-color").on("change.color", function(e, color){
+        WORLD.lights[1].ambient = hexToRGB(color + '');
+    });
+
+    $("#light2-diffuse-color").on("change.color", function(e, color){
+        WORLD.lights[1].diffuse = hexToRGB(color + '');
+    });
+
+    $("#light2-specular-color").on("change.color", function(e, color){
+        WORLD.lights[1].specular = hexToRGB(color + '');
+    });
+
+    $('#light1-posx-slider').change(function(e) {
+		WORLD.lights[0].position[0] = parseFloat($(this).val());
+	});
+
+	$('#light1-posy-slider').change(function(e) {
+		WORLD.lights[0].position[1] = parseFloat($(this).val());
+	});
+
+	$('#light1-posz-slider').change(function(e) {
+		WORLD.lights[0].position[2] = parseFloat($(this).val());
+	});
+
+	$('#light2-posx-slider').change(function(e) {
+		WORLD.lights[1].position[0] = parseFloat($(this).val());
+	});
+
+	$('#light2-posy-slider').change(function(e) {
+		WORLD.lights[1].position[1] = parseFloat($(this).val());
+	});
+
+	$('#light2-posz-slider').change(function(e) {
+		WORLD.lights[1].position[2] = parseFloat($(this).val());
+	});
+
+	$('#chkbx-light1-enabled').click(function(e) {
+		WORLD.lights[0].enabled = 1 - WORLD.lights[0].enabled;
+	});
+
+	$('#chkbx-light2-enabled').click(function(e) {
+		WORLD.lights[1].enabled = 1 - WORLD.lights[1].enabled;
+	});
+}
+
+function initLight() {
+	var light1 = {};
+
+	light1.position = light1DefaultPosition;
+	light1.ambient = hexToRGB(light1DefaultAmbientColor);
+	light1.diffuse = hexToRGB(light1DefaultDiffuseColor);
+	light1.specular = hexToRGB(light1DefaultSpecularColor);
+
+	light1.constantAttenuation = 1.0;
+	light1.linearAttenuation = 0.005;
+	light1.quadraticAttenuation = 0.001;
+
+	light1.enabled = 1;
+
+	var light2 = {};
+
+	light2.position = light2DefaultPosition;
+	light2.ambient = hexToRGB(light2DefaultAmbientColor);
+	light2.diffuse = hexToRGB(light2DefaultDiffuseColor);
+	light2.specular = hexToRGB(light2DefaultSpecularColor);
+
+	light2.constantAttenuation = 1.0;
+	light2.linearAttenuation = 0.005;
+	light2.quadraticAttenuation = 0.001;
+
+	light2.enabled = 1;
+
+	WORLD.lights.push(light1, light2);
 }
 
 function initAxisGeometry() {
@@ -968,6 +1082,7 @@ window.onload = function() {
 	initDOM();
 	initCanvas();
 	initGL();
+	initLight();
 	initViewProjection();
 	//initAxisGeometry();
 	render();
