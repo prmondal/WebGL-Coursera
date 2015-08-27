@@ -57,15 +57,12 @@ span {
 }
 
 #add-object-controller span {
-	color: #807BB7;
+	color: #BC4C8B;
+    float: left;
 }
 
 #add-object-controller select{
 	margin-left: 10px;
-}
-
-#add-object-controller span{
-	float: left;
 }
 
 .slider {
@@ -134,4 +131,12 @@ input[type="number"] {
 fieldset {
     border: 1px solid #B6BADE;
     border-radius: 10px;
+}
+
+fieldset legend {
+    color: blue;
+}
+
+span {
+    font: bold 13px Georgia, serif;
 }

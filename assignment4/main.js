@@ -94,6 +94,8 @@ var canvas,
 	modelView,
 	projection;
 
+var textCanvas, ctx;
+
 //prespective camera properties
 var nearP = 0.3,
 	farP = 100.0,
@@ -737,8 +739,12 @@ function createShape(type, material, translate, rotate, scale) {
 
 function initCanvas() {
 	canvas = document.getElementById( "gl-canvas" );
-
 	aspect =  canvas.width / canvas.height;
+
+	textCanvas = document.getElementById("text-canvas");
+    ctx = textCanvas.getContext("2d");
+    ctx.font = '15pt Calibri';
+    ctx.fillStyle = "white";
 }
 
 function initGL() {
@@ -782,12 +788,6 @@ function hexToRGB(hex) {
 //TODO
 function resetController() {
 	$('#translate-x-slider').attr('value', 0);
-}
-
-function updateObjectColorInCache(obj) {
-	if(obj.cached === true) {
-		//obj.geometry.material.ambientColor = shapeColor;
-	}
 }
 
 function initDOM() {
@@ -1164,7 +1164,8 @@ function render() {
 	frameCount++;
 
 	if(elapsedTime >= 1000) {
-		$('#fps').html('FPS: ' + frameCount);
+		ctx.clearRect(0,0,textCanvas.width,textCanvas.height);
+		ctx.fillText('fps: ' + frameCount, textCanvas.width * 0.9, textCanvas.height * 0.05);
 		frameCount = 0;
 		elapsedTime = 0;
 	}

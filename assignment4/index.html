@@ -239,8 +239,10 @@
 				</fieldset>
 			</div>
 
-			<div id="fps"></div>
 			<canvas id="gl-canvas" width="700" height="600">
+				Oops ... your browser doesn't support the HTML5 canvas element
+			</canvas>
+			<canvas id="text-canvas" width="700" height="600">
 				Oops ... your browser doesn't support the HTML5 canvas element
 			</canvas>
 
@@ -266,16 +268,16 @@
 						<div class="light-prop">
 							<fieldset>
 							<legend>Color</legend>
-								Ambient: <input style="width:100px;" id="light1-ambient-color"/>
-								Diffuse: <input style="width:100px;" id="light1-diffuse-color"/>
-								Specular: <input style="width:100px;" id="light1-specular-color"/>
+								<span>Ambient:</span> <input style="width:100px;" id="light1-ambient-color"/>
+								<span>Diffuse:</span> <input style="width:100px;" id="light1-diffuse-color"/>
+								<span>Specular:</span> <input style="width:100px;" id="light1-specular-color"/>
 							</fieldset>
 
 							<fieldset>
 							<legend>Attenuation</legend>
-								<div>Constant: <input type="number" min="1.0" max="4.0" step="0.1" value="1.0" id="light1-constant-attn"></div>
-								<div>Linear: <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light1-linear-attn"></div>
-								<div>Quadratic: <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light1-quadratic-attn"></div>
+								<div><span>Constant:</span> <input type="number" min="1.0" max="4.0" step="0.1" value="1.0" id="light1-constant-attn"></div>
+								<div><span>Linear:</span> <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light1-linear-attn"></div>
+								<div><span>Quadratic:</span> <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light1-quadratic-attn"></div>
 							</fieldset>
 						</div>
 					</div>
@@ -301,16 +303,16 @@
 						<div class="light-prop">
 							<fieldset>
 							<legend>Color</legend>
-								Ambient: <input style="width:100px;" id="light2-ambient-color"/>
-								Diffuse: <input style="width:100px;" id="light2-diffuse-color"/>
-								Specular: <input style="width:100px;" id="light2-specular-color"/>
+								<span>Ambient:</span> <input style="width:100px;" id="light2-ambient-color"/>
+								<span>Diffuse:</span> <input style="width:100px;" id="light2-diffuse-color"/>
+								<span>Specular:</span> <input style="width:100px;" id="light2-specular-color"/>
 							</fieldset>
 
 							<fieldset>
 							<legend>Attenuation</legend>
-								<div>Constant: <input type="number" min="1.0" max="4.0" step="0.1" value="1.0" id="light2-constant-attn"></div>
-								<div>Linear: <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light2-linear-attn"></div>
-								<div>Quadratic: <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light2-quadratic-attn"></div>
+								<div><span>Constant:</span> <input type="number" min="1.0" max="4.0" step="0.1" value="1.0" id="light2-constant-attn"></div>
+								<div><span>Linear:</span> <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light2-linear-attn"></div>
+								<div><span>Quadratic:</span> <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light2-quadratic-attn"></div>
 							</fieldset>
 						</div>
 					</div>
