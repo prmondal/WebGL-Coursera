@@ -117,7 +117,11 @@
 		    gl_FragColor = fColor;
 		}
 	</script>
-
+	<!--
+	<script type="text/javascript" src="http://www.cs.unm.edu/~angel/COURSERA/CODE/Common/webgl-utils.js"></script>
+	<script type="text/javascript" src="http://www.cs.unm.edu/~angel/COURSERA/CODE/Common/initShaders.js"></script>
+	<script type="text/javascript" src="http://www.cs.unm.edu/~angel/COURSERA/CODE/Common/MV.js"></script>
+	-->
 	<script type="text/javascript" src="../common/webgl-utils.js"></script>
 	<script type="text/javascript" src="../common/initShaders.js"></script>
 	<script type="text/javascript" src="../common/MV.js"></script>
@@ -162,9 +166,9 @@
 					</div>
 					
 					<div id="shape-material">
-						Ambient: <input style="width:100px;" id="shape-ambient-color"/>
-						Diffuse: <input style="width:100px;" id="shape-diffuse-color"/>
-						Specular: <input style="width:100px;" id="shape-specular-color"/>
+						<span>Ambient:</span> <input style="width:100px;" id="shape-ambient-color"/>
+						<span>Diffuse:</span> <input style="width:100px;" id="shape-diffuse-color"/>
+						<span>Specular:</span> <input style="width:100px;" id="shape-specular-color"/>
 						<span>Shininess</span> <div>15 <input id="shininess-slider" type="range" min="15" max="100" step="1" value="10" /> 100 </div>
 					</div>
 				</fieldset>
@@ -239,10 +243,10 @@
 				</fieldset>
 			</div>
 
-			<canvas id="gl-canvas" width="700" height="600">
+			<canvas id="gl-canvas" width="650" height="600">
 				Oops ... your browser doesn't support the HTML5 canvas element
 			</canvas>
-			<canvas id="text-canvas" width="700" height="600">
+			<canvas id="text-canvas" width="650" height="600">
 				Oops ... your browser doesn't support the HTML5 canvas element
 			</canvas>
 

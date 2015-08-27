@@ -88,9 +88,10 @@ span {
 }
 
 canvas {
-	margin-left: 3px;
+	margin-left: 30px;
 	border-radius: 10px;
-    position: fixed;
+    position: absolute;
+    /*position: fixed;*/
 }
 
 #controller-div {
