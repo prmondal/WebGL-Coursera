@@ -111,6 +111,19 @@
 
 			    clamp(fColor, vec4(0.0, 0.0, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0));
 		    }
+
+		    bool noLights = true;
+
+		    for(int i = 0; i < numLights; i++) {
+		    	if(lights[i].enabled == 1) {
+		    		noLights = false;
+		    		break;
+		    	}
+		    }
+
+		    if(noLights) {
+		    	fColor = matAmbientColor;
+		    }
 		    
 		    fColor.a = 1.0;
 
