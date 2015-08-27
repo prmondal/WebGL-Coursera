@@ -31,35 +31,25 @@
 	margin-top: 18px;
 }
 
-#silder-controller {
-	margin-top: 62px;
-	margin-left: 10px;
-}
-
 span {
 	color: #CE3818;
 }
 
 #btn-scene-ctrls {
-	margin-top: 20px;
-	position: relative;
-	left: 30%;
-	right: 30%;
-	width: 35%;
+	margin-top: 25px;
+    margin-bottom: 10px;
+    position: relative;
+    left: 30%;
+    right: 30%;
+    width: 50%;
 }
 
 #camera-ctrls {
 	margin-top: 8px;
 }
 
-#camera-btn-grp {
-	margin-top: 10px;
-}
-
 #checkbox-div {
-	float: left;
-	margin-top: 12px;
-	margin-left: 130px;
+	float: right;
 }
 
 #add-object-controller {
@@ -76,6 +66,10 @@ span {
 
 #add-object-controller span{
 	float: left;
+}
+
+.slider {
+    margin-bottom: 10px;
 }
 
 #shape-color {
@@ -97,7 +91,7 @@ span {
 }
 
 canvas {
-	margin-left: 5px;
+	margin-left: 3px;
 	border-radius: 10px;
     position: fixed;
 }
@@ -107,111 +101,37 @@ canvas {
     border-radius: 10px;
     float: left;
     padding: 16px;
-    width: 27%;
+    width: 25%;
 }
 
 #light-div {
-    border: 1px solid #50aacd;
+    border: 1px solid #50AACD;
     border-radius: 10px;
     float: right;
     padding: 16px;
-    width: 16%;
+    width: 20%;
 }
 
-input[type=range]{
-    /* fix for FF unable to apply focus style bug  */
-    border: 1px solid white; 
-
-    /*required for proper track sizing in FF*/
-    width: 300px;
-
-    -webkit-appearance: none;
+.light-prop {
+    margin-left: 5%;
 }
 
-input[type=range]::-moz-range-track {
-    width: 300px;
-    height: 5px;
-    background: #ddd;
-    border: none;
-    border-radius: 3px;
+#animate-light-div {
+    margin-bottom: 10px;
 }
 
-input[type=range]::-moz-range-thumb {
-    border: none;
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background:  #50AACD;
+#shape-material {
+    float: left;
+    clear: left;
+    margin-top: 10px;
+    margin-left: 5%;
 }
 
-/*hide the outline behind the border*/
-input[type=range]:-moz-focusring{
-    outline: 1px solid white;
-    outline-offset: -1px;
+input[type="number"] {
+    width: 15%;
 }
 
-input[type=range]:focus::-moz-range-track {
-    background: #ccc;
-}
-
-input[type=range]::-webkit-slider-runnable-track {
-    width: 300px;
-    height: 5px;
-    background: #ddd;
-    border: none;
-    border-radius: 3px;
-}
-
-input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    border: none;
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background: #50AACD;
-    margin-top: -4px;
-}
-
-input[type=range]:focus {
-    outline: none;
-}
-
-input[type=range]:focus::-webkit-slider-runnable-track {
-    background: #ccc;
-}
-
-input[type=range]::-ms-track {
-    width: 300px;
-    height: 5px;
-    
-    /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
-    background: transparent;
-    
-    /*leave room for the larger thumb to overflow with a transparent border */
-    border-color: transparent;
-    border-width: 6px 0;
-
-    /*remove default tick marks*/
-    color: transparent;
-}
-input[type=range]::-ms-fill-lower {
-    background: #777;
+fieldset {
+    border: 1px solid #B6BADE;
     border-radius: 10px;
-}
-input[type=range]::-ms-fill-upper {
-    background: #ddd;
-    border-radius: 10px;
-}
-input[type=range]::-ms-thumb {
-    border: none;
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background:  #50AACD;
-}
-input[type=range]:focus::-ms-fill-lower {
-    background: #888;
-}
-input[type=range]:focus::-ms-fill-upper {
-    background: #ccc;
 }
