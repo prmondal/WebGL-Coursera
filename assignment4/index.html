@@ -105,7 +105,7 @@
 			    float Ks = pow(max(dot(N, H), 0.0), shininess);
 			    vec4  specular = Ks * matSpecularColor * lights[i].specular;
 			    
-			    if(dot(L[i], N) < 0.0) specular = vec4(0.0, 0.0, 0.0, 1.0);
+			    //if(dot(L[i], N) < 0.0) specular = vec4(0.0, 0.0, 0.0, 1.0);
 
 			    fColor += attenuation[i] * (diffuse + specular);
 

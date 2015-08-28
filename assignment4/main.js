@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 var WORLD = {
 	vertDim: 3,
+	
 	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
 	worldColor: vec4(0.0, 0.0, 0.0, 1.0),//vec4(0.26, 0.274, 0.32),
 
