@@ -35,7 +35,9 @@ var WORLD = {
 	animateLight: false,
 	lightMoveDelta: 0.0,
 
-	timeScale: 0.02
+	timeScale: 0.02,
+
+	drawFloor: false
 };
 
 var OBJECT_TYPE = {
@@ -377,7 +379,7 @@ function drawShape(obj) {
 	gl.vertexAttribPointer(obj.shaderVariables.vPosition, WORLD.vertDim, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(obj.shaderVariables.vPosition);
 
-	if(wireframe === false) {
+	if(wireframe === false || obj.type === OBJECT_TYPE.AXIS_CARPET) {
 		gl.drawElements(gl.TRIANGLES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
 	} else {
 		gl.drawElements(gl.LINES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
@@ -604,19 +606,19 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 function createAxisCarpetGeometry() {
 	var xmax = 4,
 		xmin = 0,
-		zmax = 2,
+		zmax = 4,
 		zmin = 0,
 		step = 1.0;
 
 	var vertices = [],
 		indices = [],
-		colors = [],
+		normals = [],
 		wireframeColors = [];
 
 	for(var z = zmin; z <= zmax; z += step) {
 		for(var x = xmin; x <= xmax; x += step) {
 			vertices.push(vec3(x, 0.0, z));
-			colors.push(vec4(0.0, 1.0, 1.0, 1.0));
+			normals.push(vec4(0.0, 1.0, 0.0, 0.0));
 			wireframeColors.push(vec4(1.0, 1.0, 1.0, 1.0));
 		}
 	}
@@ -642,61 +644,9 @@ function createAxisCarpetGeometry() {
 	return {
 		vertices : vertices,
 		indices: indices,
-		colors: colors,
+		normals: normals,
 		wireframeColors: wireframeColors
 	}	
-}
-
-function createAxisLinesGeometry() {
-	var vertices = [],
-		indices = [],
-		colors = [],
-		wireframeColors = [];
-
-	var length = 1000,
-		xcolor = vec4(1.0, 0.0, 0.0, 1.0),
-		ycolor = vec4(0.0, 1.0, 0.0, 1.0),
-		zcolor = vec4(0.0, 0.0, 1.0, 1.0);
-
-	//x-axis
-	vertices.push(vec3(-length, 0.0, 0.0));
-	colors.push(xcolor);
-	wireframeColors.push(xcolor);
-	
-	vertices.push(vec3(length, 0.0, 0.0));
-	colors.push(xcolor);
-	wireframeColors.push(xcolor);
-
-	//y-axis
-	vertices.push(vec3(0.0, -length, 0.0));
-	colors.push(ycolor);
-	wireframeColors.push(ycolor);
-	
-	vertices.push(vec3(0.0, length, 0.0));
-	colors.push(ycolor);
-	wireframeColors.push(ycolor);
-
-	//z-axis
-	vertices.push(vec3(0.0, 0.0, -length));
-	colors.push(zcolor);
-	wireframeColors.push(zcolor);
-	
-	vertices.push(vec3(0.0, 0.0, length));
-	colors.push(zcolor);
-	wireframeColors.push(zcolor);
-
-	indices.push(
-		0, 1,
-		2, 3,
-		4, 5
-	);
-
-	return {
-		vertices: vertices,
-		indices: indices,
-		colors: colors,
-		wireframeColors: wireframeColors
-	}
 }
 
 function sphere(material, translate, rotate, scale, radius) {
@@ -731,10 +681,10 @@ function funnel(material, translate, rotate, scale, topRadius, bottomRadius, hei
 	shape.apply(this, [OBJECT_TYPE.CYLINDER, cylinderGeometry, material, translate, rotate, scale]);
 }
 
-function axisCarpet() {
-	var axisCarpetGeometry = createAxisLinesGeometry();//createAxisCarpetGeometry();
+function axisCarpet(material) {
+	var axisCarpetGeometry = createAxisCarpetGeometry();
 
-	shape.apply(this, [OBJECT_TYPE.AXIS_CARPET, axisCarpetGeometry]);
+	shape.apply(this, [OBJECT_TYPE.AXIS_CARPET, axisCarpetGeometry, material]);
 }
 
 //utility method to create shape and push it to the object pool
@@ -1114,7 +1064,14 @@ function initLight() {
 }
 
 function initAxisGeometry() {
-	var carpetXZ = new axisCarpet();
+	var material = {
+		ambientColor: matAmbientColor,
+		diffuseColor: matDiffuseColor,
+		specularColor: matSpecularColor,
+		shininess: matShininess
+	};
+
+	var carpetXZ = new axisCarpet(material);
 
 	axisCarpets.push(carpetXZ);
 }
@@ -1148,7 +1105,7 @@ window.onload = function() {
 	initGL();
 	initLight();
 	initViewProjection();
-	//initAxisGeometry();
+	initAxisGeometry();
 	render();
 }
 
@@ -1172,9 +1129,11 @@ function render() {
 	}
 
     //draw axis
-    /*axisCarpets.forEach(function(c) {
-    	c.draw();
-    });*/
+    if(WORLD.drawFloor) {
+	    axisCarpets.forEach(function(c) {
+	    	c.draw();
+	    });
+	}
 
 	objectPool.forEach(function(o) {
 		o.draw();
