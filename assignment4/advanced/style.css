@@ -1,0 +1,143 @@
+#title-div {
+	text-align: center;
+}
+
+#title-div h2 {
+	border-bottom: 2px solid #cccccc;
+    color: #cc0000;
+    font-family: "Arial Rounded MT Bold","Helvetica Rounded",Arial,sans-serif;
+    font-size: 25px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 500;
+    line-height: 26.4px;
+    padding-bottom: 9px;
+    width: 530px;
+    margin: auto;
+}
+
+#title-div h3 {
+	font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
+	font-size: 16px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 500;
+	line-height: 15.3999996185303px;
+	color: #003300;
+	margin: 10px auto auto;
+}
+
+#container {
+	margin-top: 18px;
+}
+
+span {
+	color: #CE3818;
+}
+
+#btn-scene-ctrls {
+	margin-top: 25px;
+    margin-bottom: 10px;
+    position: relative;
+    left: 30%;
+    right: 30%;
+    width: 50%;
+}
+
+#camera-ctrls {
+	margin-top: 8px;
+}
+
+#checkbox-div {
+	float: right;
+}
+
+#add-object-controller {
+	float: left;
+}
+
+#add-object-controller span {
+	color: #BC4C8B;
+    float: left;
+}
+
+#add-object-controller select{
+	margin-left: 10px;
+}
+
+.slider {
+    margin-bottom: 10px;
+}
+
+#shape-color {
+	clear: left;
+	float: left;
+	margin-left: -10px;
+	margin-top: 10px;
+}
+
+#color-txt {
+	float: left;
+	margin-left: 10px;
+}
+
+#brush-color-div {
+	float: left;
+	margin-left: 10px;
+	margin-top: -2px;
+}
+
+canvas {
+	margin-left: 30px;
+	border-radius: 10px;
+    position: absolute;
+    /*position: fixed;*/
+}
+
+#controller-div {
+    border: 1px solid #50aacd;
+    border-radius: 10px;
+    float: left;
+    padding: 16px;
+    width: 25%;
+}
+
+#light-div {
+    border: 1px solid #50AACD;
+    border-radius: 10px;
+    float: right;
+    padding: 16px;
+    width: 20%;
+}
+
+.light-prop {
+    margin-left: 5%;
+}
+
+#animate-light-div {
+    margin-bottom: 10px;
+}
+
+#shape-material {
+    float: left;
+    clear: left;
+    margin-top: 10px;
+    margin-left: 5%;
+}
+
+input[type="number"] {
+    width: 15%;
+}
+
+fieldset {
+    border: 1px solid #B6BADE;
+    border-radius: 10px;
+}
+
+fieldset legend {
+    color: blue;
+}
+
+span {
+    font: bold 13px Georgia, serif;
+}

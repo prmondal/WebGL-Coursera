@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+	<title>Geometric CAD Application</title>
+
+	<script id="vertex-shader" type="x-shader/x-vertex">
+		attribute vec4 vPosition;
+		attribute vec4 vColor;
+		attribute vec4 vNormal;
+
+		const int numLights = 2;
+
+		struct Attenuation {
+			float constantAttenuation; 
+			float linearAttenuation;
+			float quadraticAttenuation;
+		};
+
+		uniform vec4 lightPosition[numLights];
+		varying vec3 L[numLights];
+		varying float attenuation[numLights];
+		uniform Attenuation lightAttenuation[numLights];
+
+		varying vec3 N, E;
+
+		uniform mat4 modelView;
+		uniform mat4 transformMat;
+		uniform mat4 projection;
+		uniform mat3 normalMatrix;
+
+		void main() {
+		    vec3 pos = (modelView * transformMat * vPosition).xyz;
+
+		    E = -normalize(pos);
+		    
+		    for(int i = 0; i < numLights; i++) {
+		    	vec4 lightPosInCamera = modelView * lightPosition[i];
+
+		    	if(lightPosition[i].w == 0.0) {
+			    	L[i] = normalize(lightPosInCamera.xyz);
+
+			    	attenuation[i] = 1.0;
+			    } else {
+	    			vec3 lightDirectionVector = lightPosInCamera.xyz - pos;
+
+	    			float distance = length(lightDirectionVector);
+
+	    			L[i] = normalize(lightDirectionVector);
+
+	    			attenuation[i] = 1.0 / (lightAttenuation[i].constantAttenuation + lightAttenuation[i].linearAttenuation * distance + lightAttenuation[i].quadraticAttenuation * distance * distance);
+			    }
+		    }
+
+    		N = normalize(normalMatrix * vNormal.xyz);
+
+		    gl_Position = projection * modelView * transformMat * vPosition;
+		}
+	</script>
+
+	<script id="fragment-shader" type="x-shader/x-fragment">
+		precision mediump float;
+
+		const int numLights = 2;
+
+		varying vec4 fColor;
+		varying vec3 N, E;
+
+		uniform vec4 matAmbientColor;
+		uniform vec4 matDiffuseColor;
+		uniform vec4 matSpecularColor;
+		uniform float shininess;
+
+		vec4 ambientProduct;
+		vec4 diffuseProduct;
+		vec4 specularProduct;
+
+		struct LightSource {
+		  vec4 ambient;
+		  vec4 diffuse;
+		  vec4 specular;
+		  int enabled;
+		};
+
+		varying vec3 L[numLights];
+		varying float attenuation[numLights];
+
+		uniform LightSource lights[numLights];
+
+		void main() {
+			vec4 fColor = vec4(0.0);
+
+			for(int i = 0; i < numLights; i++) {
+		    	if(lights[i].enabled == 0) {
+		    		continue;
+		    	}
+
+		    	fColor = fColor + matAmbientColor * lights[i].ambient;
+
+		    	vec3 H = normalize(L[i] + E);
+
+			    float Kd = max(dot(L[i], N), 0.0);
+			    vec4  diffuse = Kd * matDiffuseColor * lights[i].diffuse;
+
+			    float Ks = pow(max(dot(N, H), 0.0), shininess);
+			    vec4  specular = Ks * matSpecularColor * lights[i].specular;
+			    
+			    //if(dot(L[i], N) < 0.0) specular = vec4(0.0, 0.0, 0.0, 1.0);
+
+			    fColor += attenuation[i] * (diffuse + specular);
+
+			    clamp(fColor, vec4(0.0, 0.0, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0));
+		    }
+
+		    bool noLights = true;
+
+		    for(int i = 0; i < numLights; i++) {
+		    	if(lights[i].enabled == 1) {
+		    		noLights = false;
+		    		break;
+		    	}
+		    }
+
+		    if(noLights) {
+		    	fColor = matAmbientColor;
+		    }
+		    
+		    fColor.a = 1.0;
+
+		    gl_FragColor = fColor;
+		}
+	</script>
+	<!--
+	<script type="text/javascript" src="http://www.cs.unm.edu/~angel/COURSERA/CODE/Common/webgl-utils.js"></script>
+	<script type="text/javascript" src="http://www.cs.unm.edu/~angel/COURSERA/CODE/Common/initShaders.js"></script>
+	<script type="text/javascript" src="http://www.cs.unm.edu/~angel/COURSERA/CODE/Common/MV.js"></script>
+	-->
+	<script type="text/javascript" src="../../common/webgl-utils.js"></script>
+	<script type="text/javascript" src="../../common/initShaders.js"></script>
+	<script type="text/javascript" src="../../common/MV.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="https://cdn.rawgit.com/evoluteur/colorpicker/master/js/evol.colorpicker.min.js" type="text/javascript"></script>
+
+	<!-- Latest compiled and minified JavaScript -->
+	<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>-->
+	
+	<link href="style.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/ui-lightness/jquery-ui.css">
+	<link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/evoluteur/colorpicker/master/css/evol.colorpicker.min.css">
+
+	<!-- Latest compiled and minified CSS -->
+	<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">-->
+</head>   
+
+<body>
+		<div id="title-div">
+			<h2 id="title1">Interactive Computer Graphics with WebGL</h2>
+			<h3 id="title2">Assignment 4: Advanced GeoCAD</h3>
+		</div>
+		
+		<div id="container">
+			<div id="controller-div">
+				<fieldset>
+					<legend>Shape</legend>
+					<div id="add-object-controller">
+						<span>Select Object</span>
+						<select id="select-object">
+							<option value='SPHERE'>Sphere</option>
+							<option value='CYLINDER'>Cylinder</option>
+							<option value='CONE'>Cone</option>
+							<option value='FUNNEL'>Funnel</option>
+						</select>
+					</div>
+					<div id="checkbox-div">
+						<div><span style="color:rgb(132, 0, 255)">Wireframe Mode</span><input id="chkbx-wireframe" type="checkbox" unchecked></div>
+						<div><span style="color:rgb(132, 0, 255)">Show Floor</span><input id="chkbx-floor" type="checkbox" checked></div>
+						<div><span style="color:rgb(132, 0, 255)">Floor Filled</span><input id="chkbx-floor-filled" type="checkbox" unchecked></div>
+					</div>
+					
+					<div id="shape-material">
+						<span>Ambient:</span> <input style="width:100px;" id="shape-ambient-color"/>
+						<span>Diffuse:</span> <input style="width:100px;" id="shape-diffuse-color"/>
+						<span>Specular:</span> <input style="width:100px;" id="shape-specular-color"/>
+						<span>Shininess</span> <div>15 <input id="shininess-slider" type="range" min="15" max="100" step="1" value="10" /> 100 </div>
+					</div>
+				</fieldset>
+
+				<fieldset>
+					<legend>Transform</legend>
+					<div id="slider-controller">
+						<fieldset>
+						<legend>Translate</legend>
+							<div class="slider">
+								<span>TranslateX</span> <div>-15 <input id="translate-x-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							</div>
+							<div class="slider">
+								<span>TranslateY</span> <div>-15 <input  id="translate-y-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							</div>
+							<div class="slider">
+								<span>TranslateZ</span> <div>-15 <input id="translate-z-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							</div>
+						</fieldset>
+
+						<fieldset>
+						<legend>Scale</legend>
+							<div class="slider">
+								<span>ScaleX</span> <div>0.5 <input id="scale-x-slider" type="range" min="0.5" max="5.0" step="0.1" value="1.0" /> 5 </div>
+							</div>
+							<div class="slider">
+								<span>ScaleY</span> <div>0.5 <input id="scale-y-slider" type="range" min="0.5" max="5.0" step="0.1" value="1.0" /> 5 </div>
+							</div>
+							<div class="slider">
+								<span>ScaleZ</span> <div>0.5 <input id="scale-z-slider" type="range" min="0.5" max="5.0" step="0.1" value="1.0" /> 5 </div>
+							</div>
+						</fieldset>
+
+						<fieldset>
+						<legend>Rotate</legend>
+							<div class="slider">
+								<span>RotateX</span> <div>-360&deg; <input id="rotate-x-slider" type="range" min="-360" max="360" step="10" value="0" /> 360&deg; </div>
+							</div>
+							<div class="slider">
+								<span>RotateY</span> <div>-360&deg; <input id="rotate-y-slider" type="range" min="-360" max="360" step="10" value="0" /> 360&deg; </div>
+							</div>
+							<div class="slider">
+								<span>RotateZ</span> <div>-360&deg; <input id="rotate-z-slider" type="range" min="-360" max="360" step="10" value="0" /> 360&deg; </div>
+							</div>
+						</fieldset>
+					</div>
+				</fieldset>
+
+				<div id="btn-scene-ctrls">
+					<button id="btn-add-object">Add</button>
+					<button id="btn-undo">Undo</button>
+					<button id="btn-clear-canvas">Clear</button>
+					<!--<button id="btn-reset-controller">Reset Controller</button>-->
+				</div>
+
+				<fieldset>
+					<legend>Camera</legend>
+					<div id="camera-ctrls">
+						<div id="camera-btn-grp">
+							<button id="btn-camera-theta-increase">Increase Theta</button>
+							<button id="btn-camera-theta-decrease">Decrease Theta</button>
+
+							<button id="btn-camera-phi-increase">Increase Phi</button>
+							<button id="btn-camera-phi-decrease">Decrease Phi</button>
+
+							<button id="btn-camera-closer">Move Closer</button>
+							<button id="btn-camera-away">Move Away</button>
+
+							<button id="btn-camera-reset">Reset</button>
+						</div>
+					</div>
+				</fieldset>
+			</div>
+
+			<canvas id="gl-canvas" width="650" height="600">
+				Oops ... your browser doesn't support the HTML5 canvas element
+			</canvas>
+			<canvas id="text-canvas" width="650" height="600">
+				Oops ... your browser doesn't support the HTML5 canvas element
+			</canvas>
+
+			<div id="light-div">
+				<div id="animate-light-div"><span style="color:rgb(132, 0, 255)">Animate Lights </span><input id="chkbx-light-animation-enabled" type="checkbox" unchecked></div>
+				<fieldset>
+					<legend>Light 1</legend>
+					<div id="light-properties">
+						<span style="color:rgb(132, 0, 255)">Enabled </span><input id="chkbx-light1-enabled" type="checkbox" checked>
+
+						<div id="light1-position">
+							<div class="slider">
+								<span>X</span> <div>-15 <input id="light1-posx-slider" type="range" min="-15" max="15" step="1" value="10" /> 15 </div>
+							</div>
+							<div class="slider">
+								<span>Y</span> <div>-15 <input  id="light1-posy-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							</div>
+							<div class="slider">
+								<span>Z</span> <div>-15 <input id="light1-posz-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							</div>
+						</div>
+
+						<div class="light-prop">
+							<fieldset>
+							<legend>Color</legend>
+								<span>Ambient:</span> <input style="width:100px;" id="light1-ambient-color"/>
+								<span>Diffuse:</span> <input style="width:100px;" id="light1-diffuse-color"/>
+								<span>Specular:</span> <input style="width:100px;" id="light1-specular-color"/>
+							</fieldset>
+
+							<fieldset>
+							<legend>Attenuation</legend>
+								<div><span>Constant:</span> <input type="number" min="1.0" max="4.0" step="0.1" value="1.0" id="light1-constant-attn"></div>
+								<div><span>Linear:</span> <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light1-linear-attn"></div>
+								<div><span>Quadratic:</span> <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light1-quadratic-attn"></div>
+							</fieldset>
+						</div>
+					</div>
+				</fieldset>
+
+				<fieldset>
+					<legend>Light 2</legend>
+					<div id="light-properties">
+						<span style="color:rgb(132, 0, 255)">Enabled </span><input id="chkbx-light2-enabled" type="checkbox" checked>
+
+						<div id="light2-position">
+							<div class="slider">
+								<span>X</span> <div>-15 <input id="light2-posx-slider" type="range" min="-15" max="15" step="1" value="10" /> 15 </div>
+							</div>
+							<div class="slider">
+								<span>Y</span> <div>-15 <input  id="light2-posy-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							</div>
+							<div class="slider">
+								<span>Z</span> <div>-15 <input id="light2-posz-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							</div>
+						</div>
+
+						<div class="light-prop">
+							<fieldset>
+							<legend>Color</legend>
+								<span>Ambient:</span> <input style="width:100px;" id="light2-ambient-color"/>
+								<span>Diffuse:</span> <input style="width:100px;" id="light2-diffuse-color"/>
+								<span>Specular:</span> <input style="width:100px;" id="light2-specular-color"/>
+							</fieldset>
+
+							<fieldset>
+							<legend>Attenuation</legend>
+								<div><span>Constant:</span> <input type="number" min="1.0" max="4.0" step="0.1" value="1.0" id="light2-constant-attn"></div>
+								<div><span>Linear:</span> <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light2-linear-attn"></div>
+								<div><span>Quadratic:</span> <input type="number" min="0.0" max="1.0" step="0.01" value="0.0" id="light2-quadratic-attn"></div>
+							</fieldset>
+						</div>
+					</div>
+				</fieldset>
+			</div>
+		</div>
+</body>
+</html>
