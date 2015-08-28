@@ -42,7 +42,7 @@ var WORLD = {
 		painted: false,
 
 		material: {
-			ambientColor: vec4(0.2, 0.2, 0.2, 1.0),
+			ambientColor: vec4(0.0, 0.2, 0.5, 1.0),
 			diffuseColor: vec4(0.5, 0.5, 0.5, 1.0),
 			specularColor: vec4(1.0, 1.0, 1.0, 1.0),
 			shininess: 5.0
@@ -137,8 +137,6 @@ var canvas,
 	modelView,
 	projection;
 
-var textCanvas, ctx;
-
 //prespective camera properties
 var nearP = 0.3,
 	farP = 100.0,
@@ -193,6 +191,10 @@ var light1DefaultPosition = vec4(light1R, 0.0, 0.0, 1.0),
 	light2DefaultAmbientColor = '#ffffff', 
 	light2DefaultDiffuseColor = '#009933', 
 	light2DefaultSpecularColor = '#00ff00';
+
+var frameCount = 0,
+	lastTime = 0,
+	elapsedTime = 0;
 
 function inverse(a) {
     var a00 = a[0][0], a01 = a[0][1], a02 = a[0][2],
@@ -730,18 +732,30 @@ function createShape(type, material, translate, rotate, scale) {
 	objectPool.push(obj);
 }
 
+//TODO resize
+function fullscreen(){
+  if(canvas.webkitRequestFullScreen) {
+   		canvas.webkitRequestFullScreen();
+   } else {
+   		canvas.mozRequestFullScreen();
+   }           
+}
+
 function initCanvas() {
 	canvas = document.getElementById( "gl-canvas" );
 	aspect =  canvas.width / canvas.height;
 
-	textCanvas = document.getElementById("text-canvas");
-    ctx = textCanvas.getContext("2d");
-    ctx.font = '15pt Calibri';
-    ctx.fillStyle = "white";
+    //canvas.addEventListener("click", fullscreen);
+
+    //place fps container in proper position
+    $(".fpsContainer").css({
+    	left: canvas.getBoundingClientRect().x,
+    	top: canvas.getBoundingClientRect().y
+    });
 }
 
 function initGL() {
-	gl = WebGLUtils.setupWebGL( canvas );
+	gl = WebGLUtils.setupWebGL(canvas);
 
     if ( !gl ) { 
     	alert( "WebGL isn't available" ); 
@@ -1118,6 +1132,17 @@ function animateLights() {
 	WORLD.lights[1].position = vec4(WORLD.lights[1].position[0], y2, z2, 1.0);
 }
 
+function updateFpsContainerLocation() {
+	$(".fpsContainer").css({
+    	left: canvas.getBoundingClientRect().x,
+    	top: canvas.getBoundingClientRect().y
+    });
+}
+
+window.onresize = function() {
+	updateFpsContainerLocation();
+}
+
 window.onload = function() {
 	initDOM();
 	initCanvas();
@@ -1128,9 +1153,19 @@ window.onload = function() {
 	render();
 }
 
-var frameCount = 0,
-	lastTime = 0,
-	elapsedTime = 0;
+function calculateFPS() {
+	var now = new Date().getTime();
+	elapsedTime += (now - lastTime);
+
+	lastTime = now;
+	frameCount++;
+
+	if(elapsedTime >= 1000) {
+		$('.fps').html('Fps: ' + frameCount);
+		frameCount = 0;
+		elapsedTime = 0;
+	}
+}
 
 function render() {
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -1160,16 +1195,5 @@ function render() {
 
 	window.requestAnimFrame(render);
 
-	var now = new Date().getTime();
-	elapsedTime += (now - lastTime);
-
-	lastTime = now;
-	frameCount++;
-
-	if(elapsedTime >= 1000) {
-		ctx.clearRect(0, 0, textCanvas.width,textCanvas.height);
-		ctx.fillText('fps: ' + frameCount, textCanvas.width * 0.9, textCanvas.height * 0.05);
-		frameCount = 0;
-		elapsedTime = 0;
-	}
+	calculateFPS();
 }

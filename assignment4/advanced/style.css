@@ -141,3 +141,16 @@ fieldset legend {
 span {
     font: bold 13px Georgia, serif;
 }
+
+.fpsContainer {
+    position: absolute;
+    z-index: 1000;
+    color: #808080;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.fps {
+    color: #FFF;
+}
