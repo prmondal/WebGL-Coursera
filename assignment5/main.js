@@ -975,6 +975,12 @@ function initDOM() {
 		textureImage = new Image();
 		textureImage.crossOrigin = "anonymous";
 		textureImage.src = textureImageURL;
+		
+		$('#loading').show();
+
+		textureImage.onload = function() {
+			$('#loading').hide();
+		}
 
 		//update all objects with new texture
 		objectPool.forEach(function(o) {

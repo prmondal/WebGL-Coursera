@@ -163,3 +163,8 @@ span {
 #texture-controller span {
     color: #BC4C8B;
 }
+
+#loading{
+    float: left;
+    margin-left: 10px;
+}
