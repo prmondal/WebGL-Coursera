@@ -42,7 +42,7 @@ var WORLD = {
 		painted: false,
 
 		material: {
-			ambientColor: vec4(0.0, 0.0, 0.0, 1.0),
+			ambientColor: vec4(0.1, 0.1, 0.1, 1.0),
 			diffuseColor: vec4(1.0, 1.0, 1.0, 1.0),
 			specularColor: vec4(1.0, 1.0, 1.0, 1.0),
 			shininess: 5.0
@@ -194,13 +194,17 @@ var wireframe = false;
 var TEXTURE_TYPE = {
 	EARTH: 'EARTH',
 	RUG: 'RUG',
+	METAL: 'METAL',
+	WOOD: 'WOOD',
 	CHECKERBOARD: 'CHECKERBOARD'
 };
 
 var textureImage,
 	textureImageURL,
-	earthTextureURL = "earth_texture.jpg",
-	rugTextureURL = "rug_texture.jpg",
+	earthTextureURL = "http://orlandoaguilar.github.io/Portfolio/WebGL/Texturization/earth.png",
+	rugTextureURL = "https://s3.amazonaws.com/glowscript/textures/rug_texture.jpg",
+	metalTextureURL = "https://s3.amazonaws.com/glowscript/textures/metal_texture.jpg",
+	woodOldTextureURL = "https://s3.amazonaws.com/glowscript/textures/wood_old_texture.jpg",
 	checkerboardImg,
 	floorTexture,
 	numChecks = 16,
@@ -962,9 +966,14 @@ function initDOM() {
 			textureImageURL = earthTextureURL;
 		} else if(textureType === TEXTURE_TYPE.RUG) {
 			textureImageURL = rugTextureURL;
+		} else if(textureType === TEXTURE_TYPE.METAL) {
+			textureImageURL = metalTextureURL;
+		} else if(textureType === TEXTURE_TYPE.WOOD) {
+			textureImageURL = woodOldTextureURL;
 		}
 
 		textureImage = new Image();
+		textureImage.crossOrigin = "anonymous";
 		textureImage.src = textureImageURL;
 
 		//update all objects with new texture
@@ -982,7 +991,7 @@ function initDOM() {
 			shininess: matShininess
 		};
 		
-		createShape(objectType, material, vec3(tX, tY + 0.5, tZ), vec3(rX, rY, rZ), vec3(sX, sY, sZ));
+		createShape(objectType, material, vec3(tX, tY + sY / 2, tZ), vec3(rX, rY, rZ), vec3(sX, sY, sZ));
 	});
 
 	$('#btn-clear-canvas').click(function(e) {
