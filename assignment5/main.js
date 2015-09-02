@@ -42,16 +42,14 @@ var WORLD = {
 		painted: false,
 
 		material: {
-			ambientColor: vec4(0.0, 0.2, 0.5, 1.0),
-			diffuseColor: vec4(0.5, 0.5, 0.5, 1.0),
+			ambientColor: vec4(0.0, 0.0, 0.0, 1.0),
+			diffuseColor: vec4(1.0, 1.0, 1.0, 1.0),
 			specularColor: vec4(1.0, 1.0, 1.0, 1.0),
 			shininess: 5.0
 		},
 
-		xmax: 50,
-		xmin: 0,
-		zmax: 50,
-		zmin: 0,
+		xmax: 16,
+		zmax: 16,
 		step: 1 //TODO does not work except 1.0
 	},
 
@@ -196,6 +194,7 @@ var wireframe = false;
 var textureImage,
 	textureImageURL = "earth_texture.jpg",
 	checkerboardImg,
+	floorTexture,
 	numChecks = 16,
 	texSize = 512,
 	defaultTextureEnabled = true;
@@ -278,17 +277,17 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 		wireframeColorData: shapeProp.wireframeColors
 	};
 
-	this.texture = {
-		texImage: (!defaultTextureEnabled) ? textureImage : checkerboardImg,
-		texObj: gl.createTexture()
-	};
-
 	this.type = type;
 	this.material = material;
 
 	this.translate = translate || vec3(0.0, 0.0, 0.0);
 	this.rotate = (rotate) ? vec3(rotate[0], rotate[1], rotate[2]) : vec3(0.0, 0.0, 0.0);
 	this.scale = scale || vec3(1.0, 1.0, 1.0);
+
+	this.texture = {
+		texImage: (this.type === OBJECT_TYPE.AXIS_CARPET) ? floorTexture : ((defaultTextureEnabled === false) ? textureImage : checkerboardImg),
+		texObj: gl.createTexture()
+	};
 
 	this.program = initShaders(gl, "vertex-shader", "fragment-shader");
 	
@@ -352,7 +351,9 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 		gl.bindTexture(gl.TEXTURE_2D, this.texture.texObj);
 	    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 	    
-	    if(!defaultTextureEnabled) {
+	    if(this.type === OBJECT_TYPE.AXIS_CARPET) {
+	    	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texSize, texSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.texture.texImage);
+	    } else if(!defaultTextureEnabled) {
 	    	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.texture.texImage);
 	    } else {
 	    	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texSize, texSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.texture.texImage);
@@ -465,7 +466,7 @@ function drawShape(obj) {
     gl.bindTexture(gl.TEXTURE_2D, obj.texture.texObj);
     gl.uniform1i(obj.shaderVariables.textureImg, 0);*/
 
-    if((wireframe === false && obj.type !== OBJECT_TYPE.AXIS_CARPET) || (obj.type === OBJECT_TYPE.AXIS_CARPET && WORLD.floor.painted)) {
+    if((wireframe === false && obj.type !== OBJECT_TYPE.AXIS_CARPET) || (obj.type === OBJECT_TYPE.AXIS_CARPET)) {
 		gl.drawElements(gl.TRIANGLES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
 	} else {
 		gl.drawElements(gl.LINES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
@@ -529,9 +530,10 @@ function createSphereGeometry(radius, sphereProp) {
 			
 			//u = Math.acos(y) / phiRange;
 			//v = Math.atan2(z, x) / thetaRange;
-			u = 1 - phi / longSubDiv;
-			v = theta / latSubDiv;
-			
+			u = phi / (longSubDiv);
+			v = theta / (latSubDiv - 2);
+			//u = p / (phiRange - 1);
+			//v = t / (thetaRange - 1);
 			textureCoords.push(vec2(u, v));
 			wireframeColors.push(sphereProp.wireframeColor);
 		}
@@ -709,27 +711,27 @@ function createCylinderGeometry(topRadius, bottomRadius, height, shapeProp, top,
 
 function createAxisCarpetGeometry() {
 	var xmax = WORLD.floor.xmax,
-		xmin = WORLD.floor.xmin,
 		zmax = WORLD.floor.zmax,
-		zmin = WORLD.floor.xmin,
 		step = WORLD.floor.step;
 
 	var vertices = [],
 		indices = [],
 		normals = [],
+		textureCoords = [],
 		wireframeColors = [];
 
-	for(var z = zmin; z <= zmax; z += step) {
-		for(var x = xmin; x <= xmax; x += step) {
+	for(var z = 0; z <= zmax; z += step) {
+		for(var x = 0; x <= xmax; x += step) {
 			vertices.push(vec3(x, 0.0, z));
 			normals.push(vec4(0.0, 1.0, 0.0, 0.0));
+			textureCoords.push(vec2(x / xmax, z / zmax));
 			wireframeColors.push(vec4(1.0, 1.0, 1.0, 1.0));
 		}
 	}
 	
-	for(var z = zmax; z > zmin; z -= step) {
-		for(var x = xmax; x > xmin; x -= step) {
-			var totalPoints = (xmax - xmin) / step + 1;
+	for(var z = zmax; z > 0; z -= step) {
+		for(var x = xmax; x > 0; x -= step) {
+			var totalPoints = xmax / step + 1;
 
 			indices.push(
 				(z - 1) * totalPoints + x - 1,
@@ -749,6 +751,7 @@ function createAxisCarpetGeometry() {
 		vertices : vertices,
 		indices: indices,
 		normals: normals,
+		textureCoords: textureCoords,
 		wireframeColors: wireframeColors
 	}	
 }
@@ -798,7 +801,7 @@ function funnel(material, translate, rotate, scale, topRadius, bottomRadius, hei
 function axisCarpet(material) {
 	var axisCarpetGeometry = createAxisCarpetGeometry();
 
-	var translate = vec3(-0.5 * (WORLD.floor.xmax - WORLD.floor.xmin), -5.0, -0.5 * (WORLD.floor.zmax - WORLD.floor.zmin)); //TODO
+	var translate = vec3(-0.5 * WORLD.floor.xmax, 0.0, -0.5 * WORLD.floor.zmax);
 
 	shape.apply(this, [OBJECT_TYPE.AXIS_CARPET, axisCarpetGeometry, material, translate]);
 }
@@ -945,7 +948,7 @@ function initDOM() {
 			shininess: matShininess
 		};
 		
-		createShape(objectType, material, vec3(tX, tY, tZ), vec3(rX, rY, rZ), vec3(sX, sY, sZ));
+		createShape(objectType, material, vec3(tX, tY + 0.5, tZ), vec3(rX, rY, rZ), vec3(sX, sY, sZ));
 	});
 
 	$('#btn-clear-canvas').click(function(e) {
@@ -1211,6 +1214,7 @@ function loadTextureImage() {
 
 	//default checkerboard pattern
 	checkerboardImg = new Uint8Array(4 * texSize * texSize);
+	floorTexture = new Uint8Array(4 * texSize * texSize);
 
     for ( var i = 0; i < texSize; i++ ) {
         for ( var j = 0; j <texSize; j++ ) {
@@ -1225,6 +1229,22 @@ function loadTextureImage() {
             checkerboardImg[4*i*texSize+4*j+1] = c;
             checkerboardImg[4*i*texSize+4*j+2] = c;
             checkerboardImg[4*i*texSize+4*j+3] = 255;
+        }
+    }
+
+    for (var i = 0; i < texSize; i++) {
+        for ( var j = 0; j < texSize; j++ ) {
+            var patchx = Math.floor(i/(texSize/numChecks));
+            var patchy = Math.floor(j/(texSize/numChecks));
+            var c;
+
+            if(patchx%2 ^ patchy%2) c = 255;
+            else c = 0;
+            //c = 255*(((i & 0x8) == 0) ^ ((j & 0x8)  == 0))
+            floorTexture[4*i*texSize+4*j] = c;
+            floorTexture[4*i*texSize+4*j+1] = c;
+            floorTexture[4*i*texSize+4*j+2] = c;
+            floorTexture[4*i*texSize+4*j+3] = 255;
         }
     }
 }
@@ -1267,10 +1287,10 @@ window.onload = function() {
 	initDOM();
 	initCanvas();
 	initGL();
+	loadTextureImage();
 	initLight();
 	initViewProjection();
-	//initAxisGeometry();
-	loadTextureImage();
+	initAxisGeometry();
 	render();
 }
 
