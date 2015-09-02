@@ -87,8 +87,8 @@ var CYLINDER_PROPERTY = {
 };
 
 var CONE_PROPERTY = {
-	radialSegment: 32,
-	heightSegment: 1,
+	radialSegment: 64,
+	heightSegment: 10,
 	thetaStart: 0,
 	thetaEnd: 2 * Math.PI,
 	top: false,
@@ -193,12 +193,14 @@ var wireframe = false;
 
 var TEXTURE_TYPE = {
 	EARTH: 'EARTH',
+	RUG: 'RUG',
 	CHECKERBOARD: 'CHECKERBOARD'
 };
 
 var textureImage,
 	textureImageURL,
 	earthTextureURL = "earth_texture.jpg",
+	rugTextureURL = "rug_texture.jpg",
 	checkerboardImg,
 	floorTexture,
 	numChecks = 16,
@@ -356,7 +358,7 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 	this.updateTextureImage = function(textureType) {
 		if(textureType === TEXTURE_TYPE.CHECKERBOARD) {
 			this.texture.texImage = checkerboardImg;
-		} else if(textureType === TEXTURE_TYPE.EARTH) {
+		} else {
 			this.texture.texImage = textureImage;
 		}
 	}
@@ -958,6 +960,8 @@ function initDOM() {
 
 		if(textureType === TEXTURE_TYPE.EARTH) {
 			textureImageURL = earthTextureURL;
+		} else if(textureType === TEXTURE_TYPE.RUG) {
+			textureImageURL = rugTextureURL;
 		}
 
 		textureImage = new Image();
