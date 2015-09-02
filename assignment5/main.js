@@ -80,14 +80,32 @@ var SPHERE_PROPERTY = {
 
 var CYLINDER_PROPERTY = {
 	radialSegment: 32,
-	heightSegment: 32,
+	heightSegment: 1,
 	thetaStart: 0,
 	thetaEnd: 2 * Math.PI,
 	top: true,
 	bottom: true,
-	coneWireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
-	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0),
-	funnelWireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
+	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
+};
+
+var CONE_PROPERTY = {
+	radialSegment: 32,
+	heightSegment: 1,
+	thetaStart: 0,
+	thetaEnd: 2 * Math.PI,
+	top: false,
+	bottom: true,
+	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
+};
+
+var FUNNEL_PROPERTY = {
+	radialSegment: 32,
+	heightSegment: 1,
+	thetaStart: 0,
+	thetaEnd: 2 * Math.PI,
+	top: false,
+	bottom: false,
+	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
 var geoCache = {
@@ -95,6 +113,7 @@ var geoCache = {
 		geometry: {
 			vertices : [],
 			normals : [],
+			textureCoords: [],
 			indices: [],
 			wireframeColors: []
 		},
@@ -105,6 +124,7 @@ var geoCache = {
 		geometry: {
 			vertices : [],
 			normals : [],
+			textureCoords: [],
 			indices: [],
 			wireframeColors: []
 		},
@@ -115,6 +135,7 @@ var geoCache = {
 		geometry: {
 			vertices : [],
 			normals : [],
+			textureCoords: [],
 			indices: [],
 			wireframeColors: []
 		},
@@ -125,6 +146,7 @@ var geoCache = {
 		geometry: {
 			vertices : [],
 			normals : [],
+			textureCoords: [],
 			indices: [],
 			wireframeColors: []
 		},
@@ -340,7 +362,7 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 		//gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	    gl.generateMipmap(gl.TEXTURE_2D);
 	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, 
-	                      gl.LINEAR);
+	                      gl.NEAREST_MIPMAP_LINEAR);
 	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 	}
 }
@@ -503,10 +525,13 @@ function createSphereGeometry(radius, sphereProp) {
 			vertices.push(vec3(radius * x, radius * y, radius * z));
 			normals.push(vec4(x, y, z, 0.0));
 
-			var u = Math.acos(y) / phiRange;
-			var v = Math.atan2(z, x) / thetaRange;
-			//u = 1 - phi / longSubDiv;
-			//v = theta / latSubDiv;
+			var u, v;
+			
+			//u = Math.acos(y) / phiRange;
+			//v = Math.atan2(z, x) / thetaRange;
+			u = 1 - phi / longSubDiv;
+			v = theta / latSubDiv;
+			
 			textureCoords.push(vec2(u, v));
 			wireframeColors.push(sphereProp.wireframeColor);
 		}
@@ -547,30 +572,31 @@ function createSphereGeometry(radius, sphereProp) {
 	return g;
 }
 
-function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, top, bottom) {
-	if(top === true) {
-		if(geoCache.cylinder.cached === true) {
-			return geoCache.cylinder.geometry;
-		}
-	} else if(bottom === true) {
+function createCylinderGeometry(topRadius, bottomRadius, height, shapeProp, top, bottom, type) {
+	if(type === OBJECT_TYPE.CONE) {
 		if(geoCache.cone.cached === true) {
 			return geoCache.cone.geometry;
 		}
-	} else {
+	} else if(type === OBJECT_TYPE.FUNNEL) {
 		if(geoCache.funnel.cached === true) {
 			return geoCache.funnel.geometry;
+		}
+	} else if(type === OBJECT_TYPE.CYLINDER) {
+		if(geoCache.cylinder.cached === true) {
+			return geoCache.cylinder.geometry;
 		}
 	}
 
 	var vertices = [],
 		indices = [],
 		normals = [],
+		textureCoords = [],
 		wireframeColors = [];
 
-	var radialSegment = cylinderProp.radialSegment || 16,
-		heightSegment = cylinderProp.heightSegment || 1,
-		thetaStart = cylinderProp.thetaStart || 0,
-		thetaEnd = cylinderProp.thetaEnd || 2 * Math.PI,
+	var radialSegment = shapeProp.radialSegment || 16,
+		heightSegment = shapeProp.heightSegment || 1,
+		thetaStart = shapeProp.thetaStart || 0,
+		thetaEnd = shapeProp.thetaEnd || 2 * Math.PI,
 		thetaRange = thetaEnd - thetaStart;
 
 	for(var y = 0; y <= heightSegment; y++) {
@@ -587,9 +613,12 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 				vz = effectiveRadius * sinTheta;
 
 			vertices.push(vec3(vx, vy, vz));
+			//textureCoords.push(vec2(1 - Math.atan2(vz, vx) / thetaRange, ((vy + height / 2) / height)));
+			textureCoords.push(vec2(1 - x / radialSegment, 1 - y / heightSegment));
 
 			//fix normals for cone TODO
-			if(y == 0 && top === true && topRadius > 0) {
+			//average the normals along top cap and bottom cap
+			if(y == 0 && (type === OBJECT_TYPE.CYLINDER || type === OBJECT_TYPE.FUNNEL)) {
 				normals.push(normalize(vec4(0.5 * vx, 0.5, 0.5 * vz, 0.0)));
 			} else if(y == heightSegment) {
 				normals.push(normalize(vec4(0.5 * vx, -0.5, 0.5 * vz, 0.0)));
@@ -597,16 +626,17 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 				normals.push(normalize(vec4(vx, 0, vz, 0.0)));
 			}
 
-			wireframeColors.push((top === false && bottom === false) ? cylinderProp.coneWireframeColor : ((top === false) ? cylinderProp.funnelWireframeColor : cylinderProp.wireframeColor));
+			wireframeColors.push(shapeProp.wireframeColor);
 		}
 	}
 
 	//indices for top
-	if(top === true && topRadius > 0) {
+	if(top === true && type !== OBJECT_TYPE.CONE) {
 		//push center
 		vertices.push(vec3(0, height / 2, 0));
 		normals.push(vec4(0.0, 1.0, 0.0, 0.0));
-		wireframeColors.push(cylinderProp.wireframeColor);
+		wireframeColors.push(shapeProp.wireframeColor);
+		textureCoords.push(vec2(1,1));
 
 		for(var x = 0; x < radialSegment; x++) {
 			indices.push(
@@ -637,11 +667,12 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 	}
 
 	//indices for bottom
-	if(bottom === true && bottomRadius > 0) {
+	if(bottom === true) {
 		//push center
 		vertices.push(vec3(0, -height / 2, 0));
 		normals.push(vec4(0.0, -1.0, 0.0, 0.0));
-		wireframeColors.push((top === false) ? cylinderProp.coneWireframeColor : cylinderProp.wireframeColor);
+		wireframeColors.push(shapeProp.wireframeColor);
+		textureCoords.push(vec2(1,1));
 
 		for(var x = 0; x < radialSegment; x++) {
 			var totalPoints = radialSegment + 1;
@@ -658,16 +689,17 @@ function createCylinderGeometry(topRadius, bottomRadius, height, cylinderProp, t
 		vertices : vertices,
 		indices: indices,
 		normals: normals,
+		textureCoords: textureCoords,
 		wireframeColors: wireframeColors
 	};
 
-	if(top === true) {
+	if(type === OBJECT_TYPE.CYLINDER) {
 		geoCache.cylinder.geometry = g;
 		geoCache.cylinder.cached = true;
-	} else if(bottom === true) {
+	} else if(type === OBJECT_TYPE.CONE) {
 		geoCache.cone.geometry = g;
 		geoCache.cone.cached = true;
-	} else {
+	} else if(type === OBJECT_TYPE.FUNNEL) {
 		geoCache.funnel.geometry = g;
 		geoCache.funnel.cached = true;
 	}
@@ -736,9 +768,19 @@ function cylinder(material, translate, rotate, scale, topRadius, bottomRadius, h
 	this.top = top;
 	this.bottom = bottom;
 
-	var cylinderGeometry = createCylinderGeometry(this.topRadius, this.bottomRadius, this.height, CYLINDER_PROPERTY, top, bottom);
+	var cylinderGeometry = createCylinderGeometry(this.topRadius, this.bottomRadius, this.height, CYLINDER_PROPERTY, top, bottom, OBJECT_TYPE.CYLINDER);
 
 	shape.apply(this, [OBJECT_TYPE.CYLINDER, cylinderGeometry, material, translate, rotate, scale]);
+}
+
+function cone(material, translate, rotate, scale, bottomRadius, height, bottom) {
+	this.bottomRadius = bottomRadius || 1;
+	this.height = height || 1;
+	this.bottom = bottom || true;
+
+	var coneGeometry = createCylinderGeometry(0.00001, this.bottomRadius, this.height, CONE_PROPERTY, false, bottom, OBJECT_TYPE.CONE);
+
+	shape.apply(this, [OBJECT_TYPE.CONE, coneGeometry, material, translate, rotate, scale]);
 }
 
 function funnel(material, translate, rotate, scale, topRadius, bottomRadius, height, top, bottom) {
@@ -748,9 +790,9 @@ function funnel(material, translate, rotate, scale, topRadius, bottomRadius, hei
 	this.top = top;
 	this.bottom = bottom;
 
-	var cylinderGeometry = createCylinderGeometry(this.topRadius, this.bottomRadius, this.height, CYLINDER_PROPERTY, top, bottom);
+	var funnelGeometry = createCylinderGeometry(this.topRadius, this.bottomRadius, this.height, FUNNEL_PROPERTY, top, bottom, OBJECT_TYPE.FUNNEL);
 
-	shape.apply(this, [OBJECT_TYPE.CYLINDER, cylinderGeometry, material, translate, rotate, scale]);
+	shape.apply(this, [OBJECT_TYPE.FUNNEL, funnelGeometry, material, translate, rotate, scale]);
 }
 
 function axisCarpet(material) {
@@ -771,15 +813,15 @@ function createShape(type, material, translate, rotate, scale) {
 			break;
 
 		case OBJECT_TYPE.CYLINDER:
-			obj = new cylinder(material, translate, rotate, scale, 0.5, 0.5, 1, true, true);
+			obj = new cylinder(material, translate, rotate, scale, 0.5, 0.5, 1, false, false);
 			break;
 
 		case OBJECT_TYPE.CONE:
-			obj = new cylinder(material, translate, rotate, scale, 0.00001, 0.5, 1, false, true);
+			obj = new cone(material, translate, rotate, scale, 0.5, 1, false);
 			break;
 
 		case OBJECT_TYPE.FUNNEL:
-			obj = new cylinder(material, translate, rotate, scale, 0.25, 0.5, 1, false, false);
+			obj = new funnel(material, translate, rotate, scale, 0.25, 0.5, 1, false, false);
 			break;
 	}
 
