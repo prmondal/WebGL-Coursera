@@ -191,13 +191,19 @@ var objectType = OBJECT_TYPE.SPHERE;
 
 var wireframe = false;
 
+var TEXTURE_TYPE = {
+	EARTH: 'EARTH',
+	CHECKERBOARD: 'CHECKERBOARD'
+};
+
 var textureImage,
-	textureImageURL = "earth_texture.jpg",
+	textureImageURL,
+	earthTextureURL = "earth_texture.jpg",
 	checkerboardImg,
 	floorTexture,
 	numChecks = 16,
 	texSize = 512,
-	defaultTextureEnabled = true;
+	textureType = TEXTURE_TYPE.CHECKERBOARD;
 
 var matDefaultAmbientColor = '#000000', 
 	matDefaultDiffuseColor = '#ffffff', 
@@ -285,7 +291,7 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 	this.scale = scale || vec3(1.0, 1.0, 1.0);
 
 	this.texture = {
-		texImage: (this.type === OBJECT_TYPE.AXIS_CARPET) ? floorTexture : ((defaultTextureEnabled === false) ? textureImage : checkerboardImg),
+		texImage: (this.type === OBJECT_TYPE.AXIS_CARPET) ? floorTexture : ((textureType === TEXTURE_TYPE.CHECKERBOARD) ? checkerboardImg : textureImage),
 		texObj: gl.createTexture()
 	};
 
@@ -347,13 +353,21 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 		gl.uniform3fv(this.shaderVariables.scale, flatten(this.scale));
 	}
 
+	this.updateTextureImage = function(textureType) {
+		if(textureType === TEXTURE_TYPE.CHECKERBOARD) {
+			this.texture.texImage = checkerboardImg;
+		} else if(textureType === TEXTURE_TYPE.EARTH) {
+			this.texture.texImage = textureImage;
+		}
+	}
+
 	this.configTexture = function() {
 		gl.bindTexture(gl.TEXTURE_2D, this.texture.texObj);
 	    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 	    
 	    if(this.type === OBJECT_TYPE.AXIS_CARPET) {
 	    	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texSize, texSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.texture.texImage);
-	    } else if(!defaultTextureEnabled) {
+	    } else if(textureType !== TEXTURE_TYPE.CHECKERBOARD) {
 	    	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.texture.texImage);
 	    } else {
 	    	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texSize, texSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.texture.texImage);
@@ -939,6 +953,22 @@ function initDOM() {
 		objectType = $(this).val();
 	});
 
+	$('#select-texture').change(function(e) {
+		textureType = $(this).val();
+
+		if(textureType === TEXTURE_TYPE.EARTH) {
+			textureImageURL = earthTextureURL;
+		}
+
+		textureImage = new Image();
+		textureImage.src = textureImageURL;
+
+		//update all objects with new texture
+		objectPool.forEach(function(o) {
+			o.updateTextureImage(textureType);
+		});
+	});
+
 	//button input
 	$('#btn-add-object').click(function(e) {
 		var material = {
@@ -1208,10 +1238,7 @@ function initAxisGeometry() {
 	axisCarpets.push(carpetXZ);
 }
 
-function loadTextureImage() {
-	textureImage = new Image();
-	textureImage.src = textureImageURL;
-
+function loadDefaultTextureImage() {
 	//default checkerboard pattern
 	checkerboardImg = new Uint8Array(4 * texSize * texSize);
 	floorTexture = new Uint8Array(4 * texSize * texSize);
@@ -1287,7 +1314,7 @@ window.onload = function() {
 	initDOM();
 	initCanvas();
 	initGL();
-	loadTextureImage();
+	loadDefaultTextureImage();
 	initLight();
 	initViewProjection();
 	initAxisGeometry();
