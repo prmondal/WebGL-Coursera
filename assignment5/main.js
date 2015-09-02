@@ -291,6 +291,17 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 
 	this.type = type;
 	this.material = material;
+	
+	this.rotation = {
+		rotXDelta: 0,
+		rotXSpeed: 1,
+
+		rotYDelta: 0,
+		rotYSpeed: 1,
+
+		rotZDelta: 0,
+		rotZSpeed: 1
+	};
 
 	this.translate = translate || vec3(0.0, 0.0, 0.0);
 	this.rotate = (rotate) ? vec3(rotate[0], rotate[1], rotate[2]) : vec3(0.0, 0.0, 0.0);
@@ -340,6 +351,10 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 		this.shaderVariables.lights.push(lightShaderVars);
 	}
 
+	this.update = function() {
+		updateShape(this);
+	}
+
 	this.draw = function() {
 		drawShape(this);
 	}
@@ -350,7 +365,7 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 	}
 
 	this.setRotate = function(rotate) {
-		this.rotate = vec3(radians(rotate[0]), radians(rotate[1]), radians(rotate[2]));
+		this.rotate = vec3(rotate[0], rotate[1], rotate[2]);
 		gl.uniform3fv(this.shaderVariables.rotate, flatten(this.rotate));
 	}
 
@@ -386,6 +401,12 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 	                      gl.NEAREST_MIPMAP_LINEAR);
 	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 	}
+}
+
+function updateShape(obj) {
+	obj.rotation.rotYDelta += obj.rotation.rotYSpeed;
+
+	obj.setRotate(vec3(obj.rotation.rotXDelta, obj.rotation.rotYDelta, obj.rotation.rotZDelta));
 }
 
 function drawShape(obj) {
@@ -1375,6 +1396,10 @@ function render() {
 	    	c.draw();
 	    });
 	}
+
+	objectPool.forEach(function(o) {
+		o.update();
+	});
 
 	objectPool.forEach(function(o) {
 		o.draw();
