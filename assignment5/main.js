@@ -561,21 +561,16 @@ function createSphereGeometry(radius, sphereProp) {
 				cosPhi = Math.cos(p),
 				sinPhi = Math.sin(p);
 
-			var x = cosTheta * sinPhi,
-				y = cosPhi,
-				z = sinTheta * sinPhi;
+			var x = cosPhi * sinTheta,
+				y = cosTheta,
+				z = sinPhi * sinTheta;
 
 			vertices.push(vec3(radius * x, radius * y, radius * z));
 			normals.push(vec4(x, y, z, 0.0));
 
-			var u, v;
+			var u = 1 - phi / longSubDiv,
+				v = 1 - theta / latSubDiv;
 			
-			//u = Math.acos(y) / phiRange;
-			//v = Math.atan2(z, x) / thetaRange;
-			u = phi / (longSubDiv);
-			v = theta / (latSubDiv - 2);
-			//u = p / (phiRange - 1);
-			//v = t / (thetaRange - 1);
 			textureCoords.push(vec2(u, v));
 			wireframeColors.push(sphereProp.wireframeColor);
 		}
