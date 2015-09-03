@@ -173,6 +173,24 @@
 		<div id="container">
 			<div id="controller-div">
 				<fieldset>
+					<legend>Camera</legend>
+					<div id="camera-ctrls">
+						<div id="camera-btn-grp">
+							<button id="btn-camera-theta-increase">Increase Theta</button>
+							<button id="btn-camera-theta-decrease">Decrease Theta</button>
+
+							<button id="btn-camera-phi-increase">Increase Phi</button>
+							<button id="btn-camera-phi-decrease">Decrease Phi</button>
+
+							<button id="btn-camera-closer">Move Closer</button>
+							<button id="btn-camera-away">Move Away</button>
+
+							<button id="btn-camera-reset">Reset</button>
+						</div>
+					</div>
+				</fieldset>
+				
+				<fieldset>
 					<legend>Shape</legend>
 					<div id="add-object-controller">
 						<span>Select Object</span>
@@ -197,6 +215,7 @@
 					<div id="checkbox-div">
 						<div><span style="color:rgb(132, 0, 255)">Wireframe Mode</span><input id="chkbx-wireframe" type="checkbox" unchecked></div>
 						<div><span style="color:rgb(132, 0, 255)">Show Floor</span><input id="chkbx-floor" type="checkbox" checked></div>
+						<div><span style="color:rgb(132, 0, 255)">Rotate Object</span><input id="chkbx-rotate-obj" type="checkbox" checked></div>
 					</div>
 					
 					<div id="shape-material">
@@ -257,24 +276,6 @@
 					<button id="btn-clear-canvas">Clear</button>
 					<!--<button id="btn-reset-controller">Reset Controller</button>-->
 				</div>
-
-				<fieldset>
-					<legend>Camera</legend>
-					<div id="camera-ctrls">
-						<div id="camera-btn-grp">
-							<button id="btn-camera-theta-increase">Increase Theta</button>
-							<button id="btn-camera-theta-decrease">Decrease Theta</button>
-
-							<button id="btn-camera-phi-increase">Increase Phi</button>
-							<button id="btn-camera-phi-decrease">Decrease Phi</button>
-
-							<button id="btn-camera-closer">Move Closer</button>
-							<button id="btn-camera-away">Move Away</button>
-
-							<button id="btn-camera-reset">Reset</button>
-						</div>
-					</div>
-				</fieldset>
 			</div>
 
 			<div class="fpsContainer">

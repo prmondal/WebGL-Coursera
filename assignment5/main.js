@@ -53,7 +53,8 @@ var WORLD = {
 		step: 1 //TODO does not work except 1.0
 	},
 
-	showFPS: true
+	showFPS: true,
+	enableObjectRotation: true 
 };
 
 var OBJECT_TYPE = {
@@ -176,7 +177,7 @@ var left = -5.0,
 var radius = 8.0;
 var theta  = 45;
 var phi    = 51.04;
-var dr = 5.0 * Math.PI / 180.0;
+var dr = 5.0;
 
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
@@ -398,7 +399,7 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 		//gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	    gl.generateMipmap(gl.TEXTURE_2D);
 	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, 
-	                      gl.NEAREST_MIPMAP_LINEAR);
+	                      gl.LINEAR);
 	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 	}
 }
@@ -1077,6 +1078,10 @@ function initDOM() {
 		WORLD.floor.painted = !WORLD.floor.painted;
 	});
 
+	$('#chkbx-rotate-obj').click(function(e) {
+		WORLD.enableObjectRotation = !WORLD.enableObjectRotation;
+	});
+
 	/*
 		Material properties
 	*/
@@ -1379,9 +1384,9 @@ function render() {
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.clearColor(WORLD.worldColor[0], WORLD.worldColor[1], WORLD.worldColor[2], WORLD.worldColor[3]);
 	
-	eye = vec3(radius*Math.sin(theta)*Math.cos(phi), 
-        radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
-	
+	eye = vec3(radius * Math.sin(radians(theta)) * Math.cos(radians(phi)),
+        radius * Math.sin(radians(theta)) * Math.sin(radians(phi)), radius * Math.cos(radians(theta)));
+
 	initViewProjection();
 
 	if(WORLD.animateLight === true) {
@@ -1397,9 +1402,11 @@ function render() {
 	    });
 	}
 
-	objectPool.forEach(function(o) {
-		o.update();
-	});
+	if(WORLD.enableObjectRotation) {
+		objectPool.forEach(function(o) {
+			o.update();
+		});
+	}
 
 	objectPool.forEach(function(o) {
 		o.draw();
