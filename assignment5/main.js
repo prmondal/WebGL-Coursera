@@ -202,10 +202,7 @@ var TEXTURE_TYPE = {
 
 var textureImage,
 	textureImageURL,
-	earthTextureURL = "http://orlandoaguilar.github.io/Portfolio/WebGL/Texturization/earth.png",
-	rugTextureURL = "https://s3.amazonaws.com/glowscript/textures/rug_texture.jpg",
-	metalTextureURL = "https://s3.amazonaws.com/glowscript/textures/metal_texture.jpg",
-	woodOldTextureURL = "https://s3.amazonaws.com/glowscript/textures/wood_old_texture.jpg",
+	textureURLs = [],
 	checkerboardImg,
 	floorTexture,
 	numChecks = 16,
@@ -225,7 +222,7 @@ var matAmbientColor = hexToRGB(matDefaultAmbientColor),
 var light1R = 10.0,
 	light2R = 10.0;
 
-var light1DefaultPosition = vec4(light1R, 0.0, 0.0, 1.0),
+var light1DefaultPosition = vec4(light1R, 0.0, light1R, 1.0),
 	light1DefaultAmbientColor = '#ffffff', 
 	light1DefaultDiffuseColor = '#ff3300', 
 	light1DefaultSpecularColor = '#ffffff',
@@ -295,13 +292,13 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 	
 	this.rotation = {
 		rotXDelta: 0,
-		rotXSpeed: 1,
+		rotXSpeed: 0.5,
 
 		rotYDelta: 0,
-		rotYSpeed: 1,
+		rotYSpeed: 0.5,
 
 		rotZDelta: 0,
-		rotZSpeed: 1
+		rotZSpeed: 0.5
 	};
 
 	this.translate = translate || vec3(0.0, 0.0, 0.0);
@@ -568,9 +565,11 @@ function createSphereGeometry(radius, sphereProp) {
 			vertices.push(vec3(radius * x, radius * y, radius * z));
 			normals.push(vec4(x, y, z, 0.0));
 
-			var u = 1 - phi / longSubDiv,
+			var u, v;
+
+				u = 1 - phi / longSubDiv,
 				v = 1 - theta / latSubDiv;
-			
+
 			textureCoords.push(vec2(u, v));
 			wireframeColors.push(sphereProp.wireframeColor);
 		}
@@ -977,24 +976,20 @@ function initDOM() {
 	});
 
 	$('#select-texture').change(function(e) {
+		$('#loading').show();
+
 		textureType = $(this).val();
 
-		if(textureType === TEXTURE_TYPE.EARTH) {
-			textureImageURL = earthTextureURL;
-		} else if(textureType === TEXTURE_TYPE.RUG) {
-			textureImageURL = rugTextureURL;
-		} else if(textureType === TEXTURE_TYPE.METAL) {
-			textureImageURL = metalTextureURL;
-		} else if(textureType === TEXTURE_TYPE.WOOD) {
-			textureImageURL = woodOldTextureURL;
-		}
+		textureImageURL = textureURLs[textureType];
 
 		textureImage = new Image();
 		textureImage.crossOrigin = "anonymous";
 		textureImage.src = textureImageURL;
 		
-		$('#loading').show();
-
+		if(textureType === TEXTURE_TYPE.CHECKERBOARD) {
+			$('#loading').hide();
+		}
+		
 		textureImage.onload = function() {
 			$('#loading').hide();
 		}
@@ -1314,6 +1309,13 @@ function loadDefaultTextureImage() {
             floorTexture[4*i*texSize+4*j+3] = 255;
         }
     }
+
+    textureURLs = [
+    	"http://orlandoaguilar.github.io/Portfolio/WebGL/Texturization/earth.png",
+		"https://s3.amazonaws.com/glowscript/textures/rug_texture.jpg",
+		"https://s3.amazonaws.com/glowscript/textures/metal_texture.jpg",
+		"https://s3.amazonaws.com/glowscript/textures/wood_old_texture.jpg"
+    ];
 }
 
 function animateLights() {
