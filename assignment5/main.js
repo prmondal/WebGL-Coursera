@@ -207,7 +207,8 @@ var textureImage,
 	floorTexture,
 	numChecks = 16,
 	texSize = 512,
-	textureType = TEXTURE_TYPE.CHECKERBOARD;
+	textureType = TEXTURE_TYPE.CHECKERBOARD,
+	enableTexturePlannerMapping = false;
 
 var matDefaultAmbientColor = '#000000', 
 	matDefaultDiffuseColor = '#ffffff', 
@@ -567,8 +568,13 @@ function createSphereGeometry(radius, sphereProp) {
 
 			var u, v;
 
+			if(enableTexturePlannerMapping) {
+				u = x;
+				v = y;
+			} else {
 				u = 1 - phi / longSubDiv,
 				v = 1 - theta / latSubDiv;
+			}
 
 			textureCoords.push(vec2(u, v));
 			wireframeColors.push(sphereProp.wireframeColor);
@@ -652,7 +658,18 @@ function createCylinderGeometry(topRadius, bottomRadius, height, shapeProp, top,
 
 			vertices.push(vec3(vx, vy, vz));
 			//textureCoords.push(vec2(1 - Math.atan2(vz, vx) / thetaRange, ((vy + height / 2) / height)));
-			textureCoords.push(vec2(1 - x / radialSegment, 1 - y / heightSegment));
+			
+			var u, v;
+
+			if(enableTexturePlannerMapping) {
+				u = x;
+				v = y;
+			} else {
+				u = 1 - x / radialSegment;
+				v = 1 - y / heightSegment;
+			}
+
+			textureCoords.push(vec2(u, v));
 
 			//fix normals for cone TODO
 			//average the normals along top cap and bottom cap
@@ -1070,6 +1087,16 @@ function initDOM() {
 
 	$('#chkbx-rotate-obj').click(function(e) {
 		WORLD.enableObjectRotation = !WORLD.enableObjectRotation;
+	});
+
+	$('#chkbx-planner-texture-mapping').click(function(e) {
+		enableTexturePlannerMapping = !enableTexturePlannerMapping;
+
+		//update object's cache data
+		geoCache.sphere.cached = false;
+		geoCache.cone.cached = false;
+		geoCache.cylinder.cached = false;
+		geoCache.funnel.cached = false;
 	});
 
 	/*
