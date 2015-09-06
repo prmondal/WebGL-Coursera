@@ -119,6 +119,7 @@ canvas {
 
 #animate-light-div {
     margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 #shape-material {
@@ -162,6 +163,11 @@ span {
 
 #texture-controller span {
     color: #BC4C8B;
+}
+
+#texture-mapping-div {
+    margin-left: 100px;
+    margin-top: 5px;
 }
 
 #loading{

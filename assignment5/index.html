@@ -172,23 +172,7 @@
 		
 		<div id="container">
 			<div id="controller-div">
-				<fieldset>
-					<legend>Camera</legend>
-					<div id="camera-ctrls">
-						<div id="camera-btn-grp">
-							<button id="btn-camera-theta-increase">Increase Theta</button>
-							<button id="btn-camera-theta-decrease">Decrease Theta</button>
-
-							<button id="btn-camera-phi-increase">Increase Phi</button>
-							<button id="btn-camera-phi-decrease">Decrease Phi</button>
-
-							<button id="btn-camera-closer">Move Closer</button>
-							<button id="btn-camera-away">Move Away</button>
-
-							<button id="btn-camera-reset">Reset</button>
-						</div>
-					</div>
-				</fieldset>
+				
 
 				<fieldset>
 					<legend>Shape</legend>
@@ -201,7 +185,6 @@
 							<option value='FUNNEL'>Funnel</option>
 						</select>
 					</div>
-					<div><span style="color:rgb(132, 0, 255)">Planer Mapping</span><input id="chkbx-planner-texture-mapping" type="checkbox" unchecked></div>
 					<div id="texture-controller">
 						<span>Select Texture</span>
 						<select id="select-texture">
@@ -211,6 +194,9 @@
 							<option value='2'>Metal (Web Image)</option>
 							<option value='3'>Wood (Web Image)</option>
 						</select>
+						<div id="texture-mapping-div">
+							<span style="color:rgb(132, 0, 255)">Planer Mapping</span><input id="chkbx-planner-texture-mapping" type="checkbox" unchecked>
+						</div>
 					</div>
 					<div id='loading' hidden>Loading...</div>
 					<div id="checkbox-div">
@@ -290,6 +276,22 @@
 			</div>
 
 			<div id="light-div">
+				<fieldset>
+					<legend>Camera</legend>
+					<div id="camera-ctrls">
+						<div class="slider">
+							<span>&Theta;</span> <div>1 <input id="camera-theta-slider" type="range" min="1" max="180" step="0.005" value="45" /> 180 </div>
+						</div>
+						<div class="slider">
+							<span>&Phi;</span> <div>1 <input id="camera-phi-slider" type="range" min="1" max="180" step="0.005" value="51.04" /> 180 </div>
+						</div>
+						<div class="slider">
+							<span>Distance</span> <div>1 <input id="camera-dist-slider" type="range" min="1" max="20" step="0.01" value="5" /> 20 </div>
+						</div>
+						<button id="btn-camera-reset">Reset</button>
+					</div>
+				</fieldset>
+				
 				<div id="animate-light-div"><span style="color:rgb(132, 0, 255)">Animate Lights </span><input id="chkbx-light-animation-enabled" type="checkbox" unchecked></div>
 				<fieldset>
 					<legend>Light 1</legend>

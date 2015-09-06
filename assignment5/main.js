@@ -174,9 +174,9 @@ var left = -5.0,
 	nearO = -5,
 	farO = 5;
 
-var radius = 8.0;
-var theta  = 45;
-var phi    = 51.04;
+var radius = 5.0;
+var theta = 45;
+var phi = 51.04;
 var dr = 5.0;
 
 var at = vec3(0.0, 0.0, 0.0);
@@ -205,7 +205,7 @@ var textureImage,
 	textureURLs = [],
 	checkerboardImg,
 	floorTexture,
-	numChecks = 16,
+	numChecks = 32,
 	texSize = 512,
 	textureType = TEXTURE_TYPE.CHECKERBOARD,
 	enableTexturePlannerMapping = false;
@@ -530,6 +530,7 @@ function clearCanvas() {
 //store vertices for future
 function createSphereGeometry(radius, sphereProp) {
 	if(geoCache.sphere.cached === true) {
+		//console.log('Sphere:: Loaded from cache');
 		return geoCache.sphere.geometry;
 	}
 
@@ -570,7 +571,7 @@ function createSphereGeometry(radius, sphereProp) {
 
 			if(enableTexturePlannerMapping) {
 				u = x;
-				v = y;
+				v = z;
 			} else {
 				u = 1 - phi / longSubDiv,
 				v = 1 - theta / latSubDiv;
@@ -619,14 +620,17 @@ function createSphereGeometry(radius, sphereProp) {
 function createCylinderGeometry(topRadius, bottomRadius, height, shapeProp, top, bottom, type) {
 	if(type === OBJECT_TYPE.CONE) {
 		if(geoCache.cone.cached === true) {
+			//console.log('Cone:: Loaded from cache');
 			return geoCache.cone.geometry;
 		}
 	} else if(type === OBJECT_TYPE.FUNNEL) {
 		if(geoCache.funnel.cached === true) {
+			//console.log('Funnel:: Loaded from cache');
 			return geoCache.funnel.geometry;
 		}
 	} else if(type === OBJECT_TYPE.CYLINDER) {
 		if(geoCache.cylinder.cached === true) {
+			//console.log('Cylinder:: Loaded from cache');
 			return geoCache.cylinder.geometry;
 		}
 	}
@@ -1043,34 +1047,22 @@ function initDOM() {
 		resetController();
 	});
 
-	$('#btn-camera-theta-increase').click(function(e) {
-		theta += dr;
+	$('#camera-theta-slider').on('input', function(e) {
+		theta = parseFloat($(this).val());
 	});
 
-	$('#btn-camera-theta-decrease').click(function(e) {
-		theta -= dr;
+	$('#camera-phi-slider').on('input', function(e) {
+		phi = parseFloat($(this).val());
 	});
 
-	$('#btn-camera-phi-increase').click(function(e) {
-		phi += dr;
-	});
-
-	$('#btn-camera-phi-decrease').click(function(e) {
-		phi -= dr;
-	});
-
-	$('#btn-camera-closer').click(function(e) {
-		radius -= 0.2;
-	});
-
-	$('#btn-camera-away').click(function(e) {
-		radius += 0.2;
+	$('#camera-dist-slider').on('input',function(e) {
+		radius = parseFloat($(this).val());
 	});
 
 	$('#btn-camera-reset').click(function(e) {
 		theta  = 45;
 		phi = 51.04;
-		radius = 8.0;
+		radius = 5.0;
 	});
 
 	$('#chkbx-wireframe').click(function(e) {
@@ -1191,51 +1183,51 @@ function initDOM() {
         WORLD.lights[1].specular = hexToRGB(color + '');
     });
 
-    $('#light1-posx-slider').change(function(e) {
+    $('#light1-posx-slider').on('input', function(e) {
 		WORLD.lights[0].position[0] = parseFloat($(this).val());
 	});
 
-	$('#light1-posy-slider').change(function(e) {
+	$('#light1-posy-slider').on('input', function(e) {
 		WORLD.lights[0].position[1] = parseFloat($(this).val());
 	});
 
-	$('#light1-posz-slider').change(function(e) {
+	$('#light1-posz-slider').on('input', function(e) {
 		WORLD.lights[0].position[2] = parseFloat($(this).val());
 	});
 
-	$('#light1-constant-attn').change(function(e) {
+	$('#light1-constant-attn').on('input', function(e) {
 		WORLD.lights[0].constantAttenuation = parseFloat($(this).val());
 	});
 
-	$('#light1-linear-attn').change(function(e) {
+	$('#light1-linear-attn').on('input', function(e) {
 		WORLD.lights[0].linearAttenuation = parseFloat($(this).val());
 	});
 
-	$('#light1-quadratic-attn').change(function(e) {
+	$('#light1-quadratic-attn').on('input', function(e) {
 		WORLD.lights[0].quadraticAttenuation = parseFloat($(this).val());
 	});
 
-	$('#light2-constant-attn').change(function(e) {
+	$('#light2-constant-attn').on('input', function(e) {
 		WORLD.lights[1].constantAttenuation = parseFloat($(this).val());
 	});
 
-	$('#light2-linear-attn').change(function(e) {
+	$('#light2-linear-attn').on('input', function(e) {
 		WORLD.lights[1].linearAttenuation = parseFloat($(this).val());
 	});
 
-	$('#light2-quadratic-attn').change(function(e) {
+	$('#light2-quadratic-attn').on('input', function(e) {
 		WORLD.lights[1].quadraticAttenuation = parseFloat($(this).val());
 	});
 
-	$('#light2-posx-slider').change(function(e) {
+	$('#light2-posx-slider').on('input', function(e) {
 		WORLD.lights[1].position[0] = parseFloat($(this).val());
 	});
 
-	$('#light2-posy-slider').change(function(e) {
+	$('#light2-posy-slider').on('input', function(e) {
 		WORLD.lights[1].position[1] = parseFloat($(this).val());
 	});
 
-	$('#light2-posz-slider').change(function(e) {
+	$('#light2-posz-slider').on('input', function(e) {
 		WORLD.lights[1].position[2] = parseFloat($(this).val());
 	});
 
