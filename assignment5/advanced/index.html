@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+	<title>Cube Map Demo</title>
+
+	<script id="vertex-shader" type="x-shader/x-vertex">
+		attribute vec4 vPosition;
+		attribute vec4 vColor;
+		attribute vec4 vNormal;
+
+		varying vec3 N, R;
+
+		uniform mat4 modelView;
+		uniform mat4 transformMat;
+		uniform mat4 projection;
+		uniform mat3 normalMatrix;
+		
+		void main() {
+		    vec3 pos = (modelView * transformMat * vPosition).xyz;
+
+    		N = normalize(normalMatrix * vNormal.xyz);
+
+    		R = reflect(pos, N);
+
+			gl_Position = projection * modelView * transformMat * vPosition;
+		}
+	</script>
+
+	<script id="fragment-shader" type="x-shader/x-fragment">
+		precision mediump float;
+
+		uniform samplerCube texMap;
+		varying vec3 R;
+
+		void main() {
+			gl_FragColor = textureCube(texMap, R);
+		}
+	</script>
+	<!--
+	<script type="text/javascript" src="http://www.cs.unm.edu/~angel/COURSERA/CODE/Common/webgl-utils.js"></script>
+	<script type="text/javascript" src="http://www.cs.unm.edu/~angel/COURSERA/CODE/Common/initShaders.js"></script>
+	<script type="text/javascript" src="http://www.cs.unm.edu/~angel/COURSERA/CODE/Common/MV.js"></script>
+	-->
+	<script type="text/javascript" src="../../common/webgl-utils.js"></script>
+	<script type="text/javascript" src="../../common/initShaders.js"></script>
+	<script type="text/javascript" src="../../common/MV.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="https://cdn.rawgit.com/evoluteur/colorpicker/master/js/evol.colorpicker.min.js" type="text/javascript"></script>
+
+	<!--<script type="text/javascript" src="../lib/jquery-1.8.0.min.js"></script>-->
+	<!-- Latest compiled and minified JavaScript -->
+	<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>-->
+	
+	<link href="style.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/ui-lightness/jquery-ui.css">
+	<link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/evoluteur/colorpicker/master/css/evol.colorpicker.min.css">
+
+	<!-- Latest compiled and minified CSS -->
+	<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">-->
+</head>   
+
+<body>
+		<div id="title-div">
+			<h2 id="title1">Interactive Computer Graphics with WebGL</h2>
+			<h3 id="title2">Cube Map Demo</h3>
+		</div>
+		
+		<div id="container">
+			<div id="controller-div">
+				
+
+				<fieldset>
+					<legend>Shape</legend>
+					<div id="add-object-controller">
+						<span>Select Object</span>
+						<select id="select-object">
+							<option value='SPHERE'>Sphere</option>
+							<option value='CYLINDER'>Cylinder</option>
+							<option value='CONE'>Cone</option>
+							<option value='FUNNEL'>Funnel</option>
+						</select>
+					</div>
+					<div id="texture-controller">
+						<span>Select Texture</span>
+						<select id="select-texture">
+							<option value='CHECKERBOARD'>Checkerboard</option>
+							<option value='0'>Earth (Web Image)</option>
+							<option value='1'>Rug (Web Image)</option>
+							<option value='2'>Metal (Web Image)</option>
+							<option value='3'>Wood (Web Image)</option>
+						</select>
+					</div>
+					<div id="checkbox-div">
+						<div><span style="color:rgb(132, 0, 255)">Wireframe Mode</span><input id="chkbx-wireframe" type="checkbox" unchecked></div>
+					</div>
+				</fieldset>
+
+				<fieldset>
+					<legend>Transform</legend>
+					<div id="slider-controller">
+						<fieldset>
+						<legend>Translate</legend>
+							<div class="slider">
+								<span>TranslateX</span> <div>-15 <input id="translate-x-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							</div>
+							<div class="slider">
+								<span>TranslateY</span> <div>-15 <input  id="translate-y-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							</div>
+							<div class="slider">
+								<span>TranslateZ</span> <div>-15 <input id="translate-z-slider" type="range" min="-15" max="15" step="1" value="0" /> 15 </div>
+							</div>
+						</fieldset>
+
+						<fieldset>
+						<legend>Scale</legend>
+							<div class="slider">
+								<span>ScaleX</span> <div>0.5 <input id="scale-x-slider" type="range" min="0.5" max="5.0" step="0.1" value="1.0" /> 5 </div>
+							</div>
+							<div class="slider">
+								<span>ScaleY</span> <div>0.5 <input id="scale-y-slider" type="range" min="0.5" max="5.0" step="0.1" value="1.0" /> 5 </div>
+							</div>
+							<div class="slider">
+								<span>ScaleZ</span> <div>0.5 <input id="scale-z-slider" type="range" min="0.5" max="5.0" step="0.1" value="1.0" /> 5 </div>
+							</div>
+						</fieldset>
+
+						<fieldset>
+						<legend>Rotate</legend>
+							<div class="slider">
+								<span>RotateX</span> <div>-360&deg; <input id="rotate-x-slider" type="range" min="-360" max="360" step="10" value="0" /> 360&deg; </div>
+							</div>
+							<div class="slider">
+								<span>RotateY</span> <div>-360&deg; <input id="rotate-y-slider" type="range" min="-360" max="360" step="10" value="0" /> 360&deg; </div>
+							</div>
+							<div class="slider">
+								<span>RotateZ</span> <div>-360&deg; <input id="rotate-z-slider" type="range" min="-360" max="360" step="10" value="0" /> 360&deg; </div>
+							</div>
+						</fieldset>
+					</div>
+				</fieldset>
+
+				<div id="btn-scene-ctrls">
+					<button id="btn-add-object">Add</button>
+					<button id="btn-undo">Undo</button>
+					<button id="btn-clear-canvas">Clear</button>
+					<!--<button id="btn-reset-controller">Reset Controller</button>-->
+				</div>
+			</div>
+
+			<div class="fpsContainer">
+				<div class="fps"></div>
+			</div>
+			
+			<div id="view-container">
+				<canvas id="gl-canvas" width="650" height="600">
+					Oops ... your browser doesn't support the HTML5 canvas element
+				</canvas>
+			</div>
+
+			<div id="camera-div">
+				<fieldset>
+					<legend>Camera</legend>
+					<div id="camera-ctrls">
+						<div class="slider">
+							<span>&Theta;</span> <div>1 <input id="camera-theta-slider" type="range" min="1" max="180" step="0.005" value="45" /> 180 </div>
+						</div>
+						<div class="slider">
+							<span>&Phi;</span> <div>1 <input id="camera-phi-slider" type="range" min="1" max="180" step="0.005" value="51.04" /> 180 </div>
+						</div>
+						<div class="slider">
+							<span>Distance</span> <div>1 <input id="camera-dist-slider" type="range" min="1" max="20" step="0.01" value="5" /> 20 </div>
+						</div>
+						<button id="btn-camera-reset">Reset</button>
+					</div>
+				</fieldset>
+			</div>
+		</div>
+</body>
+</html>
