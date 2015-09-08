@@ -360,17 +360,14 @@ function shape(type, shapeProp, material, translate, rotate, scale) {
 
 	this.setTranslate = function(translate) {
 		this.translate = translate;
-		gl.uniform3fv(this.shaderVariables.translate, flatten(this.translate));
 	}
 
 	this.setRotate = function(rotate) {
 		this.rotate = vec3(rotate[0], rotate[1], rotate[2]);
-		gl.uniform3fv(this.shaderVariables.rotate, flatten(this.rotate));
 	}
 
 	this.setScale = function(scale) {
 		this.scale = scale;
-		gl.uniform3fv(this.shaderVariables.scale, flatten(this.scale));
 	}
 
 	this.updateTextureImage = function(textureType) {
