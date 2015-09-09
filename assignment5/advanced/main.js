@@ -58,7 +58,7 @@ var SPHERE_PROPERTY = {
 
 var CYLINDER_PROPERTY = {
 	radialSegment: 32,
-	heightSegment: 1,
+	heightSegment: 10,
 	thetaStart: 0,
 	thetaEnd: 2 * Math.PI,
 	top: true,
@@ -78,7 +78,7 @@ var CONE_PROPERTY = {
 
 var FUNNEL_PROPERTY = {
 	radialSegment: 32,
-	heightSegment: 1,
+	heightSegment: 10,
 	thetaStart: 0,
 	thetaEnd: 2 * Math.PI,
 	top: false,
@@ -153,7 +153,7 @@ var left = -5.0,
 	nearO = -5,
 	farO = 5;
 
-var radius = 3.0;
+var radius = 5.0;
 var theta = 0;
 var phi = 0;
 var dr = 5.0;
@@ -182,6 +182,14 @@ var textureCubeMap = {
 		neg_x: 'resource/negx.jpg',
 		neg_y: 'resource/negy.jpg',
 		neg_z: 'resource/negz.jpg'
+		/*
+		pos_x: 'http://math.hws.edu/eck/cs424/notes2013/threejs/cube-textures/park/posx.jpg',
+		pos_y: 'http://math.hws.edu/eck/cs424/notes2013/threejs/cube-textures/park/posy.jpg',
+		pos_z: 'http://math.hws.edu/eck/cs424/notes2013/threejs/cube-textures/park/posz.jpg',
+		neg_x: 'http://math.hws.edu/eck/cs424/notes2013/threejs/cube-textures/park/negx.jpg',
+		neg_y: 'http://math.hws.edu/eck/cs424/notes2013/threejs/cube-textures/park/negy.jpg',
+		neg_z: 'http://math.hws.edu/eck/cs424/notes2013/threejs/cube-textures/park/negz.jpg'
+		*/
 	},
 
 	images: {}
@@ -310,7 +318,7 @@ function shape(type, shapeProp, translate, rotate, scale) {
 }
 
 function updateShape(obj) {
-	obj.rotation.rotYDelta -= obj.rotation.rotYSpeed;
+	obj.rotation.rotXDelta -= obj.rotation.rotXSpeed;
 
 	obj.setRotate(vec3(obj.rotation.rotXDelta, obj.rotation.rotYDelta, obj.rotation.rotZDelta));
 }
@@ -334,7 +342,7 @@ function drawShape(obj) {
     transformMat = mult(translate(obj.translate[0], obj.translate[1], obj.translate[2]), transformMat);
 
     var transformMat3x3 = mat3();
-    var viewTransformMat = modelView;//mult(modelView, transformMat); //NEED TO UNDERSTAND
+    var viewTransformMat = mult(modelView, transformMat);
 
     transformMat3x3[0][0] = viewTransformMat[0][0];
     transformMat3x3[0][1] = viewTransformMat[0][1];
@@ -378,7 +386,7 @@ function drawShape(obj) {
     gl.vertexAttribPointer(obj.shaderVariables.vNormal, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(obj.shaderVariables.vNormal);
 
-    obj.configTexture();
+    //obj.configTexture();
 
     if(wireframe === false) {
 		gl.drawElements(gl.TRIANGLES, obj.buffer.idxData.length, gl.UNSIGNED_SHORT, 0);
@@ -499,7 +507,6 @@ function createCylinderGeometry(topRadius, bottomRadius, height, shapeProp, top,
 	var vertices = [],
 		indices = [],
 		normals = [],
-		textureCoords = [],
 		wireframeColors = [];
 
 	var radialSegment = shapeProp.radialSegment || 16,
@@ -522,14 +529,6 @@ function createCylinderGeometry(topRadius, bottomRadius, height, shapeProp, top,
 				vz = effectiveRadius * sinTheta;
 
 			vertices.push(vec3(vx, vy, vz));
-			//textureCoords.push(vec2(1 - Math.atan2(vz, vx) / thetaRange, ((vy + height / 2) / height)));
-			
-			var u, v;
-
-			u = 1 - x / radialSegment;
-			v = 1 - y / heightSegment;
-
-			textureCoords.push(vec2(u, v));
 
 			//fix normals for cone TODO
 			//average the normals along top cap and bottom cap
@@ -551,7 +550,6 @@ function createCylinderGeometry(topRadius, bottomRadius, height, shapeProp, top,
 		vertices.push(vec3(0, height / 2, 0));
 		normals.push(vec4(0.0, 1.0, 0.0, 0.0));
 		wireframeColors.push(shapeProp.wireframeColor);
-		textureCoords.push(vec2(1,1));
 
 		for(var x = 0; x < radialSegment; x++) {
 			indices.push(
@@ -587,7 +585,6 @@ function createCylinderGeometry(topRadius, bottomRadius, height, shapeProp, top,
 		vertices.push(vec3(0, -height / 2, 0));
 		normals.push(vec4(0.0, -1.0, 0.0, 0.0));
 		wireframeColors.push(shapeProp.wireframeColor);
-		textureCoords.push(vec2(1,1));
 
 		for(var x = 0; x < radialSegment; x++) {
 			var totalPoints = radialSegment + 1;
@@ -604,7 +601,6 @@ function createCylinderGeometry(topRadius, bottomRadius, height, shapeProp, top,
 		vertices : vertices,
 		indices: indices,
 		normals: normals,
-		textureCoords: textureCoords,
 		wireframeColors: wireframeColors
 	};
 
@@ -674,11 +670,11 @@ function createShape(type, translate, rotate, scale) {
 			break;
 
 		case OBJECT_TYPE.CYLINDER:
-			obj = new cylinder(translate, rotate, scale, 0.5, 0.5, 1, false, false);
+			obj = new cylinder(translate, rotate, scale, 0.5, 0.5, 1, true, true);
 			break;
 
 		case OBJECT_TYPE.CONE:
-			obj = new cone(translate, rotate, scale, 0.5, 1, false);
+			obj = new cone(translate, rotate, scale, 0.5, 1, true);
 			break;
 
 		case OBJECT_TYPE.FUNNEL:
@@ -686,6 +682,7 @@ function createShape(type, translate, rotate, scale) {
 			break;
 	}
 
+	obj.configTexture();
 	objectPool.push(obj);
 }
 
@@ -797,7 +794,7 @@ function initDOM() {
 		objectType = $(this).val();
 	});
 
-	$('#select-texture').change(function(e) {
+	/*$('#select-texture').change(function(e) {
 		$('#loading').show();
 
 		textureType = $(this).val();
@@ -820,7 +817,7 @@ function initDOM() {
 		objectPool.forEach(function(o) {
 			o.updateTextureImage(textureType);
 		});
-	});
+	});*/
 
 	//button input
 	$('#btn-add-object').click(function(e) {
@@ -879,6 +876,16 @@ function loadCubeMapTextureImages() {
 	}
 }
 
+function initObjects() {
+	createShape(OBJECT_TYPE.SPHERE, vec3(1.5, 0, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
+	createShape(OBJECT_TYPE.SPHERE, vec3(0, 1.4, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
+	createShape(OBJECT_TYPE.SPHERE, vec3(0, -1.4, 0), vec3(0, 0, 0), vec3(1.2, 0.5, 1.6));
+	createShape(OBJECT_TYPE.CYLINDER, vec3(0, 0, 0), vec3(0, 0, 0), vec3(1, 1, 1));
+	createShape(OBJECT_TYPE.CONE, vec3(-1.5, 0, 0), vec3(0, 0, 0), vec3(1, 1, 1));
+	createShape(OBJECT_TYPE.FUNNEL, vec3(-1.6, 1.4, 0), vec3(0, 0, 0), vec3(1, 1, 1));
+	createShape(OBJECT_TYPE.FUNNEL, vec3(1.6, 1.4, 0), vec3(0, 0, 0), vec3(1.5, 1, 1));
+}
+
 window.onresize = function() {
 	updateFpsContainerLocation();
 }
@@ -889,7 +896,7 @@ window.onload = function() {
 	initCanvas();
 	initGL();
 	initViewProjection();
-	createShape(objectType, vec3(tX, tY, tZ), vec3(rX, rY, rZ), vec3(sX, sY, sZ));
+	initObjects();	
 
 	render();
 }
