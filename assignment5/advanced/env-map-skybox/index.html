@@ -10,19 +10,20 @@
 
 		varying vec3 N, R;
 
-		uniform mat4 modelView;
-		uniform mat4 transformMat;
+		uniform mat4 viewMatrix;
+		uniform mat4 modelMatrix;
 		uniform mat4 projection;
-		uniform mat3 normalMatrix;
+		uniform mat3 normalMatrixWorld;
+		uniform mat3 normalMatrixView;
 		
 		void main() {
-		    vec3 pos = (modelView * transformMat * vPosition).xyz;
+		    vec3 pos = (modelMatrix * vPosition).xyz;
+		    
+		    N = normalize(normalMatrixView * vNormal.xyz);
 
-    		N = normalize(normalMatrix * vNormal.xyz);
+    		R = reflect(pos, normalMatrixWorld * vNormal.xyz);
 
-    		R = reflect(pos, N);
-
-			gl_Position = projection * modelView * transformMat * vPosition;
+			gl_Position = projection * viewMatrix * modelMatrix * vPosition;
 		}
 	</script>
 
@@ -43,13 +44,13 @@
 
 		varying vec3 texCord;
 
-		uniform mat4 modelView;
-		uniform mat4 transformMat;
+		uniform mat4 viewMatrix;
+		uniform mat4 modelMatrix;
 		uniform mat4 projection;
 		
 		void main() {
 		    texCord = vPosition.xyz;
-		    gl_Position = projection * modelView * transformMat * vPosition;
+		    gl_Position = projection * viewMatrix * modelMatrix * vPosition;
 		}
 	</script>
 
@@ -122,6 +123,7 @@
 					</div>-->
 					<div id="checkbox-div">
 						<div><span style="color:rgb(132, 0, 255)">Wireframe Mode</span><input id="chkbx-wireframe" type="checkbox" unchecked></div>
+						<div><span style="color:rgb(132, 0, 255)">Rotate Object</span><input id="chkbx-rotate-obj" type="checkbox" checked></div>
 					</div>
 				</fieldset>
 

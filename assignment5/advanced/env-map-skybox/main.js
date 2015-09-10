@@ -131,8 +131,10 @@ var canvas,
 	gl,
 	objectPool = [],
 	axisCarpets = [],
-	modelView,
+	viewMatrix,
 	projection;
+
+var objectPos = vec3(0, 0, 0);
 
 var camera = {
 	perspective: {
@@ -159,7 +161,7 @@ var camera = {
 	},
 
 	eye: vec3(0.0, 0.0, 5.0),
-	at: vec3(0.0, 0.0, 0.0),
+	at: objectPos,
 	up: vec3(0.0, 1.0, 0.0)
 }
 
@@ -324,9 +326,10 @@ function shape(type, shapeProp, translate, rotate, scale) {
 		vNormal: gl.getAttribLocation(this.program, "vNormal"),
 		texMap: gl.getUniformLocation(this.program, "texMap"),
 
-		modelView: gl.getUniformLocation(this.program, "modelView"),
-		transformMat: gl.getUniformLocation(this.program, "transformMat"),
-		normalMatrix: gl.getUniformLocation(this.program, "normalMatrix"),
+		viewMatrix: gl.getUniformLocation(this.program, "viewMatrix"),
+		modelMatrix: gl.getUniformLocation(this.program, "modelMatrix"),
+		normalMatrixWorld: gl.getUniformLocation(this.program, "normalMatrixWorld"),
+		normalMatrixView: gl.getUniformLocation(this.program, "normalMatrixView"),
 		projection: gl.getUniformLocation(this.program, "projection")
 	};
 
@@ -380,40 +383,57 @@ function drawShape(obj) {
 	//initialize shader variables
 	gl.useProgram(obj.program);
 
-    var transformMat = mat4();
+    var modelMatrix = mat4();
     
     //MV.js has problem with scale Fn
     var scale = mat4();
-    scale[0][0] = obj.scale[0];
-    scale[1][1] = obj.scale[1];
-    scale[2][2] = obj.scale[2];
+	    scale[0][0] = obj.scale[0];
+	    scale[1][1] = obj.scale[1];
+	    scale[2][2] = obj.scale[2];
 
-    transformMat = mult(scale, transformMat);
-    transformMat = mult(rotateX(obj.rotate[0]), transformMat);
-    transformMat = mult(rotateY(obj.rotate[1]), transformMat);
-    transformMat = mult(rotateZ(obj.rotate[2]), transformMat);
-    transformMat = mult(translate(obj.translate[0], obj.translate[1], obj.translate[2]), transformMat);
+    modelMatrix = mult(scale, modelMatrix);
+    modelMatrix = mult(rotateX(obj.rotate[0]), modelMatrix);
+    modelMatrix = mult(rotateY(obj.rotate[1]), modelMatrix);
+    modelMatrix = mult(rotateZ(obj.rotate[2]), modelMatrix);
+    modelMatrix = mult(translate(obj.translate[0], obj.translate[1], obj.translate[2]), modelMatrix);
 
-    var transformMat3x3 = mat3();
-    var viewTransformMat = mult(modelView, transformMat);
+    var modelMatrix3x3 = mat3(),
+    	viewmodelMatrix3x3 = mat3(),
+    	viewmodelMatrix = mult(viewMatrix, modelMatrix),
+    	normalMatrixWorld, normalMatrixView;
 
-    transformMat3x3[0][0] = viewTransformMat[0][0];
-    transformMat3x3[0][1] = viewTransformMat[0][1];
-    transformMat3x3[0][2] = viewTransformMat[0][2];
+    modelMatrix3x3[0][0] = modelMatrix[0][0];
+    modelMatrix3x3[0][1] = modelMatrix[0][1];
+    modelMatrix3x3[0][2] = modelMatrix[0][2];
 
-    transformMat3x3[1][0] = viewTransformMat[1][0];
-    transformMat3x3[1][1] = viewTransformMat[1][1];
-    transformMat3x3[1][2] = viewTransformMat[1][2];
+    modelMatrix3x3[1][0] = modelMatrix[1][0];
+    modelMatrix3x3[1][1] = modelMatrix[1][1];
+    modelMatrix3x3[1][2] = modelMatrix[1][2];
 
-    transformMat3x3[2][0] = viewTransformMat[2][0];
-    transformMat3x3[2][1] = viewTransformMat[2][1];
-    transformMat3x3[2][2] = viewTransformMat[2][2];
+    modelMatrix3x3[2][0] = modelMatrix[2][0];
+    modelMatrix3x3[2][1] = modelMatrix[2][1];
+    modelMatrix3x3[2][2] = modelMatrix[2][2];
 
-    var normalMatrix = transpose(inverse(transformMat3x3));
+    normalMatrixWorld = transpose(inverse(modelMatrix3x3));
 
-	gl.uniformMatrix4fv(obj.shaderVariables.transformMat, false, flatten(transformMat));
-	gl.uniformMatrix4fv(obj.shaderVariables.modelView, false, flatten(modelView));
-	gl.uniformMatrix3fv(obj.shaderVariables.normalMatrix, false, flatten(normalMatrix));
+    viewmodelMatrix3x3[0][0] = viewmodelMatrix[0][0];
+    viewmodelMatrix3x3[0][1] = viewmodelMatrix[0][1];
+    viewmodelMatrix3x3[0][2] = viewmodelMatrix[0][2];
+
+    viewmodelMatrix3x3[1][0] = viewmodelMatrix[1][0];
+    viewmodelMatrix3x3[1][1] = viewmodelMatrix[1][1];
+    viewmodelMatrix3x3[1][2] = viewmodelMatrix[1][2];
+
+    viewmodelMatrix3x3[2][0] = viewmodelMatrix[2][0];
+    viewmodelMatrix3x3[2][1] = viewmodelMatrix[2][1];
+    viewmodelMatrix3x3[2][2] = viewmodelMatrix[2][2];
+
+    normalMatrixView = transpose(inverse(viewmodelMatrix3x3));
+
+	gl.uniformMatrix4fv(obj.shaderVariables.modelMatrix, false, flatten(modelMatrix));
+	gl.uniformMatrix4fv(obj.shaderVariables.viewMatrix, false, flatten(viewMatrix));
+	gl.uniformMatrix3fv(obj.shaderVariables.normalMatrixWorld, false, flatten(normalMatrixWorld));
+	gl.uniformMatrix3fv(obj.shaderVariables.normalMatrixView, false, flatten(normalMatrixView));
 	gl.uniformMatrix4fv(obj.shaderVariables.projection, false, flatten(projection));
 
 	gl.depthMask(true);
@@ -750,6 +770,39 @@ function fullscreen(){
    }           
 }
 
+var dragging = false;
+
+function onMouseMove(e) {
+	if(dragging) {
+		var rect = canvas.getBoundingClientRect();
+		var mouseX = e.clientX - rect.left,
+			mouseY = e.clientY - rect.top;
+
+		//console.log(mouseX + ', ' + mouseY);
+
+		camera.orientation.theta += mouseX / 100;
+		camera.eye = vec3(camera.orientation.radius * Math.sin(radians(camera.orientation.theta)) * Math.cos(radians(camera.orientation.phi)), camera.orientation.radius * Math.sin(radians(camera.orientation.theta)) * Math.sin(radians(camera.orientation.phi)), camera.orientation.radius * Math.cos(radians(camera.orientation.theta)));
+	}
+}
+
+function onMouseUp(e) {
+	if(dragging) {
+		canvas.removeEventListener('mousemove', onMouseMove, false);
+		canvas.removeEventListener('mouseup', onMouseUp, false);
+
+		dragging = false;
+	}
+}
+
+function onMouseDown() {
+	if(dragging) return;
+
+	dragging = true;
+
+	canvas.addEventListener('mousemove', onMouseMove, false);
+	canvas.addEventListener('mouseup', onMouseUp, false);
+}
+
 function initCanvas() {
 	canvas = document.getElementById( "gl-canvas" );
 	camera.perspective.aspect =  canvas.width / canvas.height;
@@ -761,6 +814,8 @@ function initCanvas() {
     	left: canvas.getBoundingClientRect().x,
     	top: canvas.getBoundingClientRect().y
     });
+
+    canvas.addEventListener('mousedown', onMouseDown, false);
 }
 
 function initGL() {
@@ -784,7 +839,7 @@ function initGL() {
 }
 
 function initViewProjection() {
-	modelView = lookAt(camera.eye, camera.at, camera.up);
+	viewMatrix = lookAt(camera.eye, camera.at, camera.up);
 	projection = perspective(camera.perspective.fovy, camera.perspective.aspect, camera.perspective.near, camera.perspective.far);
 	//projection = ortho(camera.ortho.left, camera.ortho.right, camera.ortho.bottom, camera.ortho.ytop, camera.ortho.near, camera.ortho.far);
 }
@@ -889,30 +944,12 @@ function initDOM() {
 		}
 	});
 
-	$('#btn-reset-controller').click(function(e) {
-		resetController();
-	});
-
-	$('#camera-theta-slider').on('input', function(e) {
-		theta = parseFloat($(this).val());
-	});
-
-	$('#camera-phi-slider').on('input', function(e) {
-		phi = parseFloat($(this).val());
-	});
-
-	$('#camera-dist-slider').on('input',function(e) {
-		radius = parseFloat($(this).val());
-	});
-
-	$('#btn-camera-reset').click(function(e) {
-		theta  = 45;
-		phi = 51.04;
-		radius = 5.0;
-	});
-
 	$('#chkbx-wireframe').click(function(e) {
 		wireframe = !wireframe;
+	});
+
+	$('#chkbx-rotate-obj').click(function(e) {
+		WORLD.enableObjectRotation = !WORLD.enableObjectRotation;
 	});
 }
 
@@ -942,8 +979,8 @@ function loadSkyBox() {
 		vPosition: gl.getAttribLocation(skybox.program, "vPosition"),
 		skyMap: gl.getUniformLocation(skybox.program, "skyMap"),
 
-		modelView: gl.getUniformLocation(skybox.program, "modelView"),
-		transformMat: gl.getUniformLocation(skybox.program, "transformMat"),
+		viewMatrix: gl.getUniformLocation(skybox.program, "viewMatrix"),
+		modelMatrix: gl.getUniformLocation(skybox.program, "modelMatrix"),
 		projection: gl.getUniformLocation(skybox.program, "projection")
 	};
 
@@ -979,14 +1016,14 @@ function loadSkyBox() {
 		gl.useProgram(this.program);
 
 	    var scale = mat4(),
-	    	transformMat = mat4();
+	    	modelMatrix = mat4();
 	    
 	    scale[0][0] = scale[1][1] = scale[2][2] = this.scale;
 
-	    transformMat = mult(scale, transformMat);
+	    modelMatrix = mult(scale, modelMatrix);
 
-	    gl.uniformMatrix4fv(this.shaderVariables.transformMat, false, flatten(transformMat));
-		gl.uniformMatrix4fv(this.shaderVariables.modelView, false, flatten(modelView));
+	    gl.uniformMatrix4fv(this.shaderVariables.modelMatrix, false, flatten(modelMatrix));
+		gl.uniformMatrix4fv(this.shaderVariables.viewMatrix, false, flatten(viewMatrix));
 		gl.uniformMatrix4fv(this.shaderVariables.projection, false, flatten(projection));
 
 		gl.depthMask(false);
@@ -1009,15 +1046,15 @@ function loadSkyBox() {
 }
 
 function initObjects() {
-	createShape(OBJECT_TYPE.SPHERE, vec3(1.5, 0, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
+	/*createShape(OBJECT_TYPE.SPHERE, vec3(1.5, 0, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
 	createShape(OBJECT_TYPE.SPHERE, vec3(0, 1.4, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
 	createShape(OBJECT_TYPE.SPHERE, vec3(0, -1.4, 0), vec3(0, 0, 0), vec3(1.2, 0.5, 1.6));
 	createShape(OBJECT_TYPE.CYLINDER, vec3(0, 0, 0), vec3(0, 0, 0), vec3(1, 1, 1));
 	createShape(OBJECT_TYPE.CONE, vec3(-1.5, 0, 0), vec3(0, 0, 0), vec3(1, 1, 1));
 	createShape(OBJECT_TYPE.FUNNEL, vec3(-1.6, 1.4, 0), vec3(0, 0, 0), vec3(1, 1, 1));
-	createShape(OBJECT_TYPE.FUNNEL, vec3(1.6, 1.4, 0), vec3(0, 0, 0), vec3(1.5, 1, 1));
+	createShape(OBJECT_TYPE.FUNNEL, vec3(1.6, 1.4, 0), vec3(0, 0, 0), vec3(1.5, 1, 1));*/
 
-	//createShape(OBJECT_TYPE.SPHERE, vec3(0, 0, -2), vec3(0, 0, 0), vec3(1, 0.5, 1));
+	createShape(OBJECT_TYPE.SPHERE, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
 	//createShape(OBJECT_TYPE.FUNNEL, vec3(0, 0, -5), vec3(0, 0, 0), vec3(1.5, 1, 1));
 }
 
@@ -1063,9 +1100,11 @@ function render() {
 	//draw skybox
 	skybox.draw();
 
-	objectPool.forEach(function(o) {
-		o.update();
-	});
+	if(WORLD.enableObjectRotation) {
+		objectPool.forEach(function(o) {
+			o.update();
+		});
+	}
 
 	objectPool.forEach(function(o) {
 		o.draw();
