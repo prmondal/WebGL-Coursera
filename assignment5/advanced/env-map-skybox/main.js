@@ -134,28 +134,34 @@ var canvas,
 	modelView,
 	projection;
 
-//prespective camera properties
-var nearP = 0.3,
-	farP = 100.0,
-	aspect,
-	fovy = 45.0;
+var camera = {
+	perspective: {
+		near: 0.3,
+		far: 1000.0,
+		aspect: 1,
+		fovy: 45.0
+	},
 
-//ortho graphic camera properties
-var left = -5.0,
-	right = 5.0,
-	ytop = 5.0,
-	bottom = -5.0,
-	nearO = -5,
-	farO = 5;
+	ortho: {
+		left: -5.0,
+		right: 5.0,
+		ytop: 5.0,
+		bottom: -5.0,
+		near: -5,
+		far: 5
+	},
 
-var radius = 10.0;
-var theta = 0;
-var phi = 0;
-var dr = 5.0;
+	orientation: {
+		radius: 5.0,
+		theta: 0,
+		phi: 0,
+		dr: 5.0
+	},
 
-var eye = vec3(0.0, 0.0, radius);
-var at = vec3(0.0, 0.0, 0.0);
-var up = vec3(0.0, 1.0, 0.0);
+	eye: vec3(0.0, 0.0, 5.0),
+	at: vec3(0.0, 0.0, 0.0),
+	up: vec3(0.0, 1.0, 0.0)
+}
 
 var tX = 0.0, tY = 0.0, tZ = 0.0, 
 	sX = 1.0, sY = 1.0, sZ = 1.0,
@@ -169,28 +175,24 @@ var frameCount = 0,
 	lastTime = 0,
 	elapsedTime = 0;
 
-var textureCubeMap = {
-	urls: {
-		pos_x: 'resource/cubemap/posx.jpg',
-		pos_y: 'resource/cubemap/posy.jpg',
-		pos_z: 'resource/cubemap/posz.jpg',
-		neg_x: 'resource/cubemap/negx.jpg',
-		neg_y: 'resource/cubemap/negy.jpg',
-		neg_z: 'resource/cubemap/negz.jpg'
-	},
+var texturePath = 'resource/skybox/',
+	textureImageFormat = 'jpg';
 
+var textureCubeMap = {
 	images: {}
 };
 
 var skybox = {
 	textures: [
-		['TEXTURE_CUBE_MAP_POSITIVE_X', 'resource/cubemap/right.jpg'],
-		['TEXTURE_CUBE_MAP_NEGATIVE_X', 'resource/cubemap/left.jpg'],
-		['TEXTURE_CUBE_MAP_POSITIVE_Y', 'resource/cubemap/top.jpg'],
-		['TEXTURE_CUBE_MAP_NEGATIVE_Y', 'resource/cubemap/down.jpg'],
-		['TEXTURE_CUBE_MAP_POSITIVE_Z', 'resource/cubemap/front.jpg'],
-		['TEXTURE_CUBE_MAP_NEGATIVE_Z', 'resource/cubemap/back.jpg']
+		['TEXTURE_CUBE_MAP_POSITIVE_X', 'posx'],
+		['TEXTURE_CUBE_MAP_NEGATIVE_X', 'negx'],
+		['TEXTURE_CUBE_MAP_POSITIVE_Y', 'posy'],
+		['TEXTURE_CUBE_MAP_NEGATIVE_Y', 'negy'],
+		['TEXTURE_CUBE_MAP_POSITIVE_Z', 'posz'],
+		['TEXTURE_CUBE_MAP_NEGATIVE_Z', 'negz']
 	],
+
+	scale: 100,
 
 	indices: [ 
 		0, 1, 2, 
@@ -352,12 +354,12 @@ function shape(type, shapeProp, translate, rotate, scale) {
 		gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture.cubeMap);
 	    //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.pos_x);
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.neg_x);
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.pos_y);
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.neg_y);
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.pos_z);
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.neg_z);
+	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.posx);
+	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.negx);
+	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.posy);
+	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.negy);
+	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.posz);
+	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.negz);
 
 	    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
 	    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -750,7 +752,7 @@ function fullscreen(){
 
 function initCanvas() {
 	canvas = document.getElementById( "gl-canvas" );
-	aspect =  canvas.width / canvas.height;
+	camera.perspective.aspect =  canvas.width / canvas.height;
 
     //canvas.addEventListener("click", fullscreen);
 
@@ -782,9 +784,9 @@ function initGL() {
 }
 
 function initViewProjection() {
-	modelView = lookAt(eye, at, up);
-	projection = perspective(fovy, aspect, nearP, farP);
-	//projection = ortho(left, right, bottom, ytop, nearO, farO);
+	modelView = lookAt(camera.eye, camera.at, camera.up);
+	projection = perspective(camera.perspective.fovy, camera.perspective.aspect, camera.perspective.near, camera.perspective.far);
+	//projection = ortho(camera.ortho.left, camera.ortho.right, camera.ortho.bottom, camera.ortho.ytop, camera.ortho.near, camera.ortho.far);
 }
 
 function hexToRGB(hex) {
@@ -919,6 +921,9 @@ function updateFpsContainerLocation() {
     	left: canvas.getBoundingClientRect().x,
     	top: canvas.getBoundingClientRect().y
     });
+
+    //update aspect
+
 }
 
 function loadImage(url) {
@@ -927,12 +932,6 @@ function loadImage(url) {
 	img.src = url;
 
 	return img;
-}
-
-function loadCubeMapTextureImages() {
-	for(var u in textureCubeMap.urls) {
-		textureCubeMap.images[u] = loadImage(textureCubeMap.urls[u]);
-	}
 }
 
 function loadSkyBox() {
@@ -961,8 +960,11 @@ function loadSkyBox() {
 	//gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
 	for(var i = 0, l = skybox.textures.length; i < l; i++) {
-		var image = loadImage(skybox.textures[i][1]);
-		gl.texImage2D(gl[skybox.textures[i][0]], 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+		var img = loadImage(texturePath + skybox.textures[i][1] + '.' + textureImageFormat);
+		gl.texImage2D(gl[skybox.textures[i][0]], 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+
+		//store cube map textures for objects
+		textureCubeMap.images[skybox.textures[i][1]] = img;
 	}
 
     gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
@@ -979,9 +981,7 @@ function loadSkyBox() {
 	    var scale = mat4(),
 	    	transformMat = mat4();
 	    
-	    scale[0][0] = 10;
-	    scale[1][1] = 10;
-	    scale[2][2] = 10;
+	    scale[0][0] = scale[1][1] = scale[2][2] = this.scale;
 
 	    transformMat = mult(scale, transformMat);
 
@@ -1009,15 +1009,16 @@ function loadSkyBox() {
 }
 
 function initObjects() {
-	/*createShape(OBJECT_TYPE.SPHERE, vec3(1.5, 0, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
+	createShape(OBJECT_TYPE.SPHERE, vec3(1.5, 0, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
 	createShape(OBJECT_TYPE.SPHERE, vec3(0, 1.4, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
 	createShape(OBJECT_TYPE.SPHERE, vec3(0, -1.4, 0), vec3(0, 0, 0), vec3(1.2, 0.5, 1.6));
 	createShape(OBJECT_TYPE.CYLINDER, vec3(0, 0, 0), vec3(0, 0, 0), vec3(1, 1, 1));
 	createShape(OBJECT_TYPE.CONE, vec3(-1.5, 0, 0), vec3(0, 0, 0), vec3(1, 1, 1));
 	createShape(OBJECT_TYPE.FUNNEL, vec3(-1.6, 1.4, 0), vec3(0, 0, 0), vec3(1, 1, 1));
-	createShape(OBJECT_TYPE.FUNNEL, vec3(1.6, 1.4, 0), vec3(0, 0, 0), vec3(1.5, 1, 1));*/
+	createShape(OBJECT_TYPE.FUNNEL, vec3(1.6, 1.4, 0), vec3(0, 0, 0), vec3(1.5, 1, 1));
 
-	createShape(OBJECT_TYPE.SPHERE, vec3(0, 0, -5), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
+	//createShape(OBJECT_TYPE.SPHERE, vec3(0, 0, -2), vec3(0, 0, 0), vec3(1, 0.5, 1));
+	//createShape(OBJECT_TYPE.FUNNEL, vec3(0, 0, -5), vec3(0, 0, 0), vec3(1.5, 1, 1));
 }
 
 window.onresize = function() {
@@ -1025,8 +1026,6 @@ window.onresize = function() {
 }
 
 window.onload = function() {
-	loadCubeMapTextureImages();
-	
 	initDOM();
 	initCanvas();
 	initGL();
@@ -1056,8 +1055,8 @@ function render() {
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.clearColor(WORLD.worldColor[0], WORLD.worldColor[1], WORLD.worldColor[2], WORLD.worldColor[3]);
 	
-	eye = vec3(radius * Math.sin(radians(theta)) * Math.cos(radians(phi)),
-        radius * Math.sin(radians(theta)) * Math.sin(radians(phi)), radius * Math.cos(radians(theta)));
+	/*eye = vec3(radius * Math.sin(radians(theta)) * Math.cos(radians(phi)),
+        radius * Math.sin(radians(theta)) * Math.sin(radians(phi)), radius * Math.cos(radians(theta)));*/
 
 	initViewProjection();
 
