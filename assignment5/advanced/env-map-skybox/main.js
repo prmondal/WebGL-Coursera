@@ -33,7 +33,7 @@ var WORLD = {
 	timeScale: 0.02,
 
 	showFPS: true,
-	enableObjectRotation: true 
+	enableObjectRotation: false 
 };
 
 var OBJECT_TYPE = {
@@ -127,7 +127,8 @@ var geoCache = {
 	}
 };
 
-var canvas, 
+var canvas,
+	canvasRect, 
 	gl,
 	objectPool = [],
 	axisCarpets = [],
@@ -135,6 +136,14 @@ var canvas,
 	projection;
 
 var objectPos = vec3(0, 0, 0);
+
+var mouse = {
+	dragging: false,
+	pMouseX: 0,
+	pMouseY: 0,
+	mouseX: 0,
+	mouseY: 0
+}
 
 var camera = {
 	perspective: {
@@ -160,7 +169,7 @@ var camera = {
 		dr: 5.0
 	},
 
-	eye: vec3(0.0, 0.0, 5.0),
+	eye: vec3(0.0, 0.0, 0.0),
 	at: objectPos,
 	up: vec3(0.0, 1.0, 0.0)
 }
@@ -330,7 +339,8 @@ function shape(type, shapeProp, translate, rotate, scale) {
 		modelMatrix: gl.getUniformLocation(this.program, "modelMatrix"),
 		normalMatrixWorld: gl.getUniformLocation(this.program, "normalMatrixWorld"),
 		normalMatrixView: gl.getUniformLocation(this.program, "normalMatrixView"),
-		projection: gl.getUniformLocation(this.program, "projection")
+		projection: gl.getUniformLocation(this.program, "projection"),
+		eye: gl.getUniformLocation(this.program, "eye")
 	};
 
 	this.update = function() {
@@ -435,6 +445,7 @@ function drawShape(obj) {
 	gl.uniformMatrix3fv(obj.shaderVariables.normalMatrixWorld, false, flatten(normalMatrixWorld));
 	gl.uniformMatrix3fv(obj.shaderVariables.normalMatrixView, false, flatten(normalMatrixView));
 	gl.uniformMatrix4fv(obj.shaderVariables.projection, false, flatten(projection));
+	gl.uniformMatrix3fv(obj.shaderVariables.eye, false, flatten(camera.eye));
 
 	gl.depthMask(true);
 
@@ -770,34 +781,35 @@ function fullscreen(){
    }           
 }
 
-var dragging = false;
-
 function onMouseMove(e) {
-	if(dragging) {
-		var rect = canvas.getBoundingClientRect();
-		var mouseX = e.clientX - rect.left,
-			mouseY = e.clientY - rect.top;
+	if(mouse.dragging) {
+		
+		mouse.mouseX = e.clientX - canvasRect.left,
+		mouse.mouseY = e.clientY - canvasRect.top;
 
-		//console.log(mouseX + ', ' + mouseY);
-
-		camera.orientation.theta += mouseX / 100;
-		camera.eye = vec3(camera.orientation.radius * Math.sin(radians(camera.orientation.theta)) * Math.cos(radians(camera.orientation.phi)), camera.orientation.radius * Math.sin(radians(camera.orientation.theta)) * Math.sin(radians(camera.orientation.phi)), camera.orientation.radius * Math.cos(radians(camera.orientation.theta)));
+		camera.orientation.theta += (mouse.mouseX - mouse.pMouseX) / 2;
+		
+		mouse.pMouseX = mouse.mouseX;
+		mouse.pMouseY = mouse.mouseY;
 	}
 }
 
 function onMouseUp(e) {
-	if(dragging) {
+	if(mouse.dragging) {
 		canvas.removeEventListener('mousemove', onMouseMove, false);
 		canvas.removeEventListener('mouseup', onMouseUp, false);
 
-		dragging = false;
+		mouse.dragging = false;
 	}
 }
 
-function onMouseDown() {
-	if(dragging) return;
+function onMouseDown(e) {
+	if(mouse.dragging) return;
 
-	dragging = true;
+	mouse.dragging = true;
+
+	mouse.pMouseX = e.clientX - canvasRect.left;
+	mouse.pMouseY = e.clientY - canvasRect.top;
 
 	canvas.addEventListener('mousemove', onMouseMove, false);
 	canvas.addEventListener('mouseup', onMouseUp, false);
@@ -816,6 +828,8 @@ function initCanvas() {
     });
 
     canvas.addEventListener('mousedown', onMouseDown, false);
+
+    canvasRect = canvas.getBoundingClientRect();
 }
 
 function initGL() {
@@ -1054,8 +1068,10 @@ function initObjects() {
 	createShape(OBJECT_TYPE.FUNNEL, vec3(-1.6, 1.4, 0), vec3(0, 0, 0), vec3(1, 1, 1));
 	createShape(OBJECT_TYPE.FUNNEL, vec3(1.6, 1.4, 0), vec3(0, 0, 0), vec3(1.5, 1, 1));*/
 
-	createShape(OBJECT_TYPE.SPHERE, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
-	//createShape(OBJECT_TYPE.FUNNEL, vec3(0, 0, -5), vec3(0, 0, 0), vec3(1.5, 1, 1));
+	//createShape(OBJECT_TYPE.SPHERE, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
+	//createShape(OBJECT_TYPE.CYLINDER, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
+	//createShape(OBJECT_TYPE.CONE, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
+	createShape(OBJECT_TYPE.FUNNEL, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
 }
 
 window.onresize = function() {
@@ -1088,12 +1104,27 @@ function calculateFPS() {
 	}
 }
 
+window.addEventListener('keydown', onKeyDown, false);
+
+function onKeyDown(e) {
+    switch(e.keyCode) {
+    	case 87: 
+    		camera.orientation.radius -= 1;
+    		break;
+
+    	case 83: 
+    		camera.orientation.radius += 1;
+    		break;
+    }
+}
+
 function render() {
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.clearColor(WORLD.worldColor[0], WORLD.worldColor[1], WORLD.worldColor[2], WORLD.worldColor[3]);
 	
 	/*eye = vec3(radius * Math.sin(radians(theta)) * Math.cos(radians(phi)),
         radius * Math.sin(radians(theta)) * Math.sin(radians(phi)), radius * Math.cos(radians(theta)));*/
+	camera.eye = vec3(camera.orientation.radius * Math.sin(radians(camera.orientation.theta)) * Math.cos(radians(camera.orientation.phi)), camera.orientation.radius * Math.sin(radians(camera.orientation.theta)) * Math.sin(radians(camera.orientation.phi)), camera.orientation.radius * Math.cos(radians(camera.orientation.theta)));
 
 	initViewProjection();
 
