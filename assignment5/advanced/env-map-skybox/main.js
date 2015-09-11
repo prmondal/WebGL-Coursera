@@ -40,7 +40,8 @@ var OBJECT_TYPE = {
 	SPHERE: 'SPHERE',
 	CONE: 'CONE',
 	CYLINDER: 'CYLINDER',
-	FUNNEL: 'FUNNEL'
+	FUNNEL: 'FUNNEL',
+	TEAPOT: 'TEAPOT'
 };
 
 var SPHERE_PROPERTY = {
@@ -85,6 +86,10 @@ var FUNNEL_PROPERTY = {
 	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
+var TEAPOT_PROPERTY = {
+	wireframeColor: vec4(1.0, 1.0, 1.0, 1.0)
+};
+
 var geoCache = {
 	sphere: {
 		geometry: {
@@ -117,6 +122,16 @@ var geoCache = {
 	},
 
 	funnel: {
+		geometry: {
+			vertices : [],
+			normals : [],
+			indices: [],
+			wireframeColors: []
+		},
+		cached: false
+	},
+
+	teaPot: {
 		geometry: {
 			vertices : [],
 			normals : [],
@@ -258,6 +273,8 @@ var skybox = {
 	  -1.0,  1.0, -1.0 
 	] 
 };
+
+//'http://learningwebgl.com/lessons/lesson14/Teapot.json';
 
 function inverse(a) {
     var a00 = a[0][0], a01 = a[0][1], a02 = a[0][2],
@@ -704,6 +721,43 @@ function createCylinderGeometry(topRadius, bottomRadius, height, shapeProp, top,
 	return g;
 }
 
+function createTeaPotGeometry(shapeProp) {
+	if(geoCache.teaPot.cached === true) {
+		//console.log('Sphere:: Loaded from cache');
+		return geoCache.teaPot.geometry;
+	}
+
+	var vertices = [],
+		indices = [],
+		normals = [],
+		wireframeColors = [];
+
+	//construct vertices array
+	for(var i = 0, l = teapotModel.vertexPositions.length; i < l - 2; i += 3) {
+		vertices.push(vec3(teapotModel.vertexPositions[i], teapotModel.vertexPositions[i + 1], teapotModel.vertexPositions[i + 2]));
+	}
+
+	for(var i = 0, l = teapotModel.vertexNormals.length; i < l - 2; i += 3) {
+		normals.push(vec4(teapotModel.vertexNormals[i], teapotModel.vertexNormals[i + 1], teapotModel.vertexNormals[i + 2], 0));
+	}
+
+	for(var i = 0, l = teapotModel.vertexPositions.length / 3; i < l; i++) {
+		wireframeColors.push(shapeProp.wireframeColor);
+	}
+
+	var g = {
+		vertices : vertices,
+		indices: teapotModel.indices,
+		normals: normals,
+		wireframeColors: wireframeColors
+	}
+
+	geoCache.teaPot.geometry = g;
+	geoCache.teaPot.cached = true;
+
+	return g;
+}
+
 function sphere(translate, rotate, scale, radius) {
 	this.radius = radius || 1;
 
@@ -746,6 +800,10 @@ function funnel(translate, rotate, scale, topRadius, bottomRadius, height, top, 
 	shape.apply(this, [OBJECT_TYPE.FUNNEL, funnelGeometry, translate, rotate, scale]);
 }
 
+function teaPot(translate, rotate, scale) {
+	shape.apply(this, [OBJECT_TYPE.TEAPOT, createTeaPotGeometry(TEAPOT_PROPERTY), translate, rotate, scale]);
+}
+
 //utility method to create shape and push it to the object pool
 function createShape(type, translate, rotate, scale) {
 	var obj;
@@ -765,6 +823,10 @@ function createShape(type, translate, rotate, scale) {
 
 		case OBJECT_TYPE.FUNNEL:
 			obj = new funnel(translate, rotate, scale, 0.25, 0.5, 1, false, false);
+			break;
+
+		case OBJECT_TYPE.TEAPOT:
+			obj = new teaPot(translate, rotate, scale);
 			break;
 	}
 
@@ -1059,7 +1121,7 @@ function loadSkyBox() {
 	}
 }
 
-function initObjects() {
+function placeObjects() {
 	/*createShape(OBJECT_TYPE.SPHERE, vec3(1.5, 0, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
 	createShape(OBJECT_TYPE.SPHERE, vec3(0, 1.4, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
 	createShape(OBJECT_TYPE.SPHERE, vec3(0, -1.4, 0), vec3(0, 0, 0), vec3(1.2, 0.5, 1.6));
@@ -1071,7 +1133,8 @@ function initObjects() {
 	//createShape(OBJECT_TYPE.SPHERE, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
 	//createShape(OBJECT_TYPE.CYLINDER, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
 	//createShape(OBJECT_TYPE.CONE, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
-	createShape(OBJECT_TYPE.FUNNEL, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
+	//createShape(OBJECT_TYPE.FUNNEL, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
+	createShape(OBJECT_TYPE.TEAPOT, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
 }
 
 window.onresize = function() {
@@ -1083,9 +1146,8 @@ window.onload = function() {
 	initCanvas();
 	initGL();
 	initViewProjection();
-
 	loadSkyBox();
-	initObjects();	
+	placeObjects();	
 
 	render();
 }

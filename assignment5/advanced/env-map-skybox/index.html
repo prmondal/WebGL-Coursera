@@ -22,7 +22,7 @@
 		    
 		    N = normalize(normalMatrixWorld * vNormal.xyz);
 
-		    R = reflect(eye-pos, N);
+		    R = reflect(eye - pos, N);
 
     		gl_Position = projection * viewMatrix * modelMatrix * vPosition;
 		}
@@ -74,6 +74,7 @@
 	<script type="text/javascript" src="../../../common/initShaders.js"></script>
 	<script type="text/javascript" src="../../../common/MV.js"></script>
 	<script type="text/javascript" src="main.js"></script>
+	<script type="text/javascript" src="model.js"></script>
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
