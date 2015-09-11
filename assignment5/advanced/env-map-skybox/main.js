@@ -178,7 +178,7 @@ var camera = {
 	},
 
 	orientation: {
-		radius: 5.0,
+		radius: 3.0,
 		theta: 0,
 		phi: 0,
 		dr: 5.0
@@ -978,6 +978,21 @@ function initDOM() {
 	//menu input
 	$('#select-object').change(function(e) {
 		objectType = $(this).val();
+
+		//display selected object
+		objectPool = [];
+
+		if(objectType === OBJECT_TYPE.SPHERE) {
+			createShape(OBJECT_TYPE.SPHERE, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
+		} else if(objectType === OBJECT_TYPE.CYLINDER) {
+			createShape(OBJECT_TYPE.CYLINDER, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
+		} else if(objectType === OBJECT_TYPE.CONE) {
+			createShape(OBJECT_TYPE.CONE, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
+		} else if(objectType === OBJECT_TYPE.FUNNEL) {
+			createShape(OBJECT_TYPE.FUNNEL, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
+		} else if(objectType === OBJECT_TYPE.TEAPOT) {
+			createShape(OBJECT_TYPE.TEAPOT, objectPos, vec3(0, 0, 0), vec3(0.05, 0.05, 0.05));
+		}
 	});
 
 	/*$('#select-texture').change(function(e) {
@@ -1121,7 +1136,7 @@ function loadSkyBox() {
 	}
 }
 
-function placeObjects() {
+function placeDefaultObjects() {
 	/*createShape(OBJECT_TYPE.SPHERE, vec3(1.5, 0, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
 	createShape(OBJECT_TYPE.SPHERE, vec3(0, 1.4, 0), vec3(0, 0, 0), vec3(1.2, 0.6, 1.2));
 	createShape(OBJECT_TYPE.SPHERE, vec3(0, -1.4, 0), vec3(0, 0, 0), vec3(1.2, 0.5, 1.6));
@@ -1130,11 +1145,11 @@ function placeObjects() {
 	createShape(OBJECT_TYPE.FUNNEL, vec3(-1.6, 1.4, 0), vec3(0, 0, 0), vec3(1, 1, 1));
 	createShape(OBJECT_TYPE.FUNNEL, vec3(1.6, 1.4, 0), vec3(0, 0, 0), vec3(1.5, 1, 1));*/
 
-	//createShape(OBJECT_TYPE.SPHERE, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
+	createShape(OBJECT_TYPE.SPHERE, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
 	//createShape(OBJECT_TYPE.CYLINDER, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
 	//createShape(OBJECT_TYPE.CONE, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
 	//createShape(OBJECT_TYPE.FUNNEL, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
-	createShape(OBJECT_TYPE.TEAPOT, objectPos, vec3(0, 0, 0), vec3(1, 1, 1));
+	//createShape(OBJECT_TYPE.TEAPOT, objectPos, vec3(0, 0, 0), vec3(0.05, 0.05, 0.05));
 }
 
 window.onresize = function() {
@@ -1147,7 +1162,7 @@ window.onload = function() {
 	initGL();
 	initViewProjection();
 	loadSkyBox();
-	placeObjects();	
+	placeDefaultObjects();	
 
 	render();
 }
