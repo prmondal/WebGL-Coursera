@@ -201,7 +201,7 @@ var frameCount = 0,
 	lastTime = 0,
 	elapsedTime = 0;
 
-var texturePath = 'resource/skybox/',
+var texturePath = '../resource/skybox/',
 	textureImageFormat = 'jpg';
 
 var textureCubeMap = {
@@ -1089,7 +1089,7 @@ function loadSkyBox() {
 
 	for(var i = 0, l = skybox.textures.length; i < l; i++) {
 		var img = loadImage(texturePath + skybox.textures[i][1] + '.' + textureImageFormat);
-		gl.texImage2D(gl[skybox.textures[i][0]], 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+		gl.texImage2D(gl[skybox.textures[i][0]], 0, gl.RGB, 512, 512, 0, gl.RGB, gl.UNSIGNED_BYTE, img);
 
 		//store cube map textures for objects
 		textureCubeMap.images[skybox.textures[i][1]] = img;
