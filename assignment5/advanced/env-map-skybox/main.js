@@ -201,7 +201,7 @@ var frameCount = 0,
 	lastTime = 0,
 	elapsedTime = 0;
 
-var texturePath = '../resource/skybox/',
+var texturePath = 'resource/skybox/',
 	textureImageFormat = 'jpg';
 
 var textureCubeMap = {
@@ -210,12 +210,12 @@ var textureCubeMap = {
 
 var skybox = {
 	textures: [
-		['TEXTURE_CUBE_MAP_POSITIVE_X', 'posx'],
-		['TEXTURE_CUBE_MAP_NEGATIVE_X', 'negx'],
-		['TEXTURE_CUBE_MAP_POSITIVE_Y', 'posy'],
-		['TEXTURE_CUBE_MAP_NEGATIVE_Y', 'negy'],
-		['TEXTURE_CUBE_MAP_POSITIVE_Z', 'posz'],
-		['TEXTURE_CUBE_MAP_NEGATIVE_Z', 'negz']
+		['TEXTURE_CUBE_MAP_POSITIVE_X', 'posx', texturePath + 'posx.' + textureImageFormat],
+		['TEXTURE_CUBE_MAP_NEGATIVE_X', 'negx', texturePath + 'negx.' + textureImageFormat],
+		['TEXTURE_CUBE_MAP_POSITIVE_Y', 'posy', texturePath + 'posy.' + textureImageFormat],
+		['TEXTURE_CUBE_MAP_NEGATIVE_Y', 'negy', texturePath + 'negy.' + textureImageFormat],
+		['TEXTURE_CUBE_MAP_POSITIVE_Z', 'posz', texturePath + 'posz.' + textureImageFormat],
+		['TEXTURE_CUBE_MAP_NEGATIVE_Z', 'negz', texturePath + 'negz.' + textureImageFormat]
 	],
 
 	scale: 100,
@@ -379,25 +379,6 @@ function shape(type, shapeProp, translate, rotate, scale) {
 	this.setScale = function(scale) {
 		this.scale = scale;
 	}
-
-	this.configTexture = function() {
-		gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture.cubeMap);
-	    //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.posx);
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.negx);
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.posy);
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.negy);
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.posz);
-	    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, textureCubeMap.images.negz);
-
-	    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-	    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-	    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-	    gl.activeTexture(gl.TEXTURE0);
-    	gl.uniform1i(this.shaderVariables.texMap, 0);
-	}
 }
 
 function updateShape(obj) {
@@ -462,7 +443,7 @@ function drawShape(obj) {
 	gl.uniformMatrix3fv(obj.shaderVariables.normalMatrixWorld, false, flatten(normalMatrixWorld));
 	gl.uniformMatrix3fv(obj.shaderVariables.normalMatrixView, false, flatten(normalMatrixView));
 	gl.uniformMatrix4fv(obj.shaderVariables.projection, false, flatten(projection));
-	gl.uniformMatrix3fv(obj.shaderVariables.eye, false, flatten(camera.eye));
+	gl.uniform3fv(obj.shaderVariables.eye, flatten(camera.eye));
 
 	gl.depthMask(true);
 
@@ -830,7 +811,6 @@ function createShape(type, translate, rotate, scale) {
 			break;
 	}
 
-	obj.configTexture();
 	objectPool.push(obj);
 }
 
@@ -1054,14 +1034,6 @@ function updateFpsContainerLocation() {
 
 }
 
-function loadImage(url) {
-	var img = new Image();
-	img.crossOrigin = 'anonymous';
-	img.src = url;
-
-	return img;
-}
-
 function loadSkyBox() {
 	//init shader
     skybox.program = initShaders(gl, "vertex-shader-skybox", "fragment-shader-skybox");
@@ -1081,25 +1053,42 @@ function loadSkyBox() {
 		idxId: gl.createBuffer()
 	};
 
-	//load skybox textures
-	skybox.texId = gl.createTexture();
+	var count = 0;
+	var img = new Array(6);
 
-	gl.bindTexture(gl.TEXTURE_CUBE_MAP, skybox.texId);
-	//gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+	for(var i = 0; i < img.length; i++) {
+		img[i] = new Image();
+		img[i].onload = function() {
+			count++;
 
-	for(var i = 0, l = skybox.textures.length; i < l; i++) {
-		var img = loadImage(texturePath + skybox.textures[i][1] + '.' + textureImageFormat);
-		gl.texImage2D(gl[skybox.textures[i][0]], 0, gl.RGB, 512, 512, 0, gl.RGB, gl.UNSIGNED_BYTE, img);
+			if(count === 6) {
+				skybox.texId = gl.createTexture();
+				gl.bindTexture(gl.TEXTURE_CUBE_MAP, skybox.texId);
 
-		//store cube map textures for objects
-		textureCubeMap.images[skybox.textures[i][1]] = img;
+				for(var j = 0; j < img.length; j++) {
+					gl.texImage2D(gl[skybox.textures[j][0]], 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img[j]);
+	    			textureCubeMap.images[skybox.textures[j][1]] = img[j];
+
+	    			gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    				gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    				gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+				}
+			}
+		};
+
+		img[i].onerror = function() {
+             console.error('Texture image not found!');
+        };
+
+		img[i].src = skybox.textures[i][2];
 	}
 
-    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	//gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
     //bind texture
+    gl.useProgram(skybox.program);
     gl.activeTexture(gl.TEXTURE0);
     gl.uniform1i(skybox.shaderVariables.skyMap, 0);
 
