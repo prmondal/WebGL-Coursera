@@ -351,11 +351,9 @@ function shape(type, shapeProp, translate, rotate, scale) {
 		vPosition: gl.getAttribLocation(this.program, "vPosition"),
 		vNormal: gl.getAttribLocation(this.program, "vNormal"),
 		texMap: gl.getUniformLocation(this.program, "texMap"),
-
 		viewMatrix: gl.getUniformLocation(this.program, "viewMatrix"),
 		modelMatrix: gl.getUniformLocation(this.program, "modelMatrix"),
 		normalMatrixWorld: gl.getUniformLocation(this.program, "normalMatrixWorld"),
-		normalMatrixView: gl.getUniformLocation(this.program, "normalMatrixView"),
 		projection: gl.getUniformLocation(this.program, "projection"),
 		eye: gl.getUniformLocation(this.program, "eye")
 	};
@@ -406,9 +404,8 @@ function drawShape(obj) {
     modelMatrix = mult(translate(obj.translate[0], obj.translate[1], obj.translate[2]), modelMatrix);
 
     var modelMatrix3x3 = mat3(),
-    	viewmodelMatrix3x3 = mat3(),
     	viewmodelMatrix = mult(viewMatrix, modelMatrix),
-    	normalMatrixWorld, normalMatrixView;
+    	normalMatrixWorld;
 
     modelMatrix3x3[0][0] = modelMatrix[0][0];
     modelMatrix3x3[0][1] = modelMatrix[0][1];
@@ -424,24 +421,9 @@ function drawShape(obj) {
 
     normalMatrixWorld = transpose(inverse(modelMatrix3x3));
 
-    viewmodelMatrix3x3[0][0] = viewmodelMatrix[0][0];
-    viewmodelMatrix3x3[0][1] = viewmodelMatrix[0][1];
-    viewmodelMatrix3x3[0][2] = viewmodelMatrix[0][2];
-
-    viewmodelMatrix3x3[1][0] = viewmodelMatrix[1][0];
-    viewmodelMatrix3x3[1][1] = viewmodelMatrix[1][1];
-    viewmodelMatrix3x3[1][2] = viewmodelMatrix[1][2];
-
-    viewmodelMatrix3x3[2][0] = viewmodelMatrix[2][0];
-    viewmodelMatrix3x3[2][1] = viewmodelMatrix[2][1];
-    viewmodelMatrix3x3[2][2] = viewmodelMatrix[2][2];
-
-    normalMatrixView = transpose(inverse(viewmodelMatrix3x3));
-
 	gl.uniformMatrix4fv(obj.shaderVariables.modelMatrix, false, flatten(modelMatrix));
 	gl.uniformMatrix4fv(obj.shaderVariables.viewMatrix, false, flatten(viewMatrix));
 	gl.uniformMatrix3fv(obj.shaderVariables.normalMatrixWorld, false, flatten(normalMatrixWorld));
-	gl.uniformMatrix3fv(obj.shaderVariables.normalMatrixView, false, flatten(normalMatrixView));
 	gl.uniformMatrix4fv(obj.shaderVariables.projection, false, flatten(projection));
 	gl.uniform3fv(obj.shaderVariables.eye, flatten(camera.eye));
 

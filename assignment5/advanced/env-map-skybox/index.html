@@ -14,16 +14,12 @@
 		uniform mat4 modelMatrix;
 		uniform mat4 projection;
 		uniform mat3 normalMatrixWorld;
-		uniform mat3 normalMatrixView;
 		uniform vec3 eye;
 
 		void main() {
 		    vec3 pos = (modelMatrix * vPosition).xyz;
-		    
 		    N = normalize(normalMatrixWorld * vNormal.xyz);
-
-		    R = reflect(eye - pos, N);
-
+		    R = reflect(pos - eye, N);
     		gl_Position = projection * viewMatrix * modelMatrix * vPosition;
 		}
 	</script>
@@ -95,7 +91,7 @@
 <body>
 		<div id="title-div">
 			<h2 id="title1">Interactive Computer Graphics with WebGL</h2>
-			<h3 id="title2">Cube Map Demo</h3>
+			<h3 id="title2">Environment Map Demo</h3>
 		</div>
 		
 		<div id="container">
