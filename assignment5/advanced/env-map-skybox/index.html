@@ -20,7 +20,10 @@
 		    vec3 pos = (modelMatrix * vPosition).xyz;
 		    N = normalize(normalMatrixWorld * vNormal.xyz);
 		    R = reflect(pos - eye, N);
-    		gl_Position = projection * viewMatrix * modelMatrix * vPosition;
+		    //float eta = 0.98;
+		    //vec3 I = normalize(eye - pos);
+		    //R = (eta * dot(N, I) - sqrt(1.0 - eta * eta * (1.0 - dot(N, I) * dot(N, I)))) * N - eta * I;
+			gl_Position = projection * viewMatrix * modelMatrix * vPosition;
 		}
 	</script>
 
@@ -171,8 +174,8 @@
 				</fieldset>
 
 				<div id="btn-scene-ctrls">
-					<!--<button id="btn-add-object">Add</button>
-					<button id="btn-undo">Undo</button>-->
+					<button id="btn-add-object">Add</button>
+					<button id="btn-undo">Undo</button>
 					<button id="btn-clear-canvas">Clear</button>
 					<!--<button id="btn-reset-controller">Reset Controller</button>-->
 				</div>
